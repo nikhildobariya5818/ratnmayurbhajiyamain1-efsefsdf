@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Users, Calendar, Phone, ChefHat, Truck, FileText, Download } from "lucide-react"
 import type { Order } from "@/lib/types"
-import { scaleIngredients } from "@/lib/database"
+import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
 import { pdf } from "@react-pdf/renderer"
 import { useState } from "react"
 import { OrderPDF } from "./pdf/OrderPDF"
@@ -31,12 +31,13 @@ export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogPr
 
   const client = order.client || order.clientSnapshot
 
-  // Since saved orders have flattened ingredient structure with quantityPer100, use scaleIngredients instead
-  const scaledIngredients = scaleIngredients(order.menuItems, order.numberOfPeople)
+  const hasDualValues = order.menuItems.some((item) =>
+    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  )
 
-  // Remove the fallback logic since we're now using the correct function
-  // const fallbackIngredients =
-  //   scaledIngredients.length === 0 ? scaleIngredients(order.menuItems, order.numberOfPeople) : scaledIngredients
+  const scaledIngredients = hasDualValues
+    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
+    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const generatePDF = async () => {
     try {
@@ -160,6 +161,11 @@ export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogPr
               <CardTitle className="text-lg flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Ingredient Requirements
+                {hasDualValues && (
+                  <Badge variant="secondary" className="text-xs">
+                    Smart Scaling
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">

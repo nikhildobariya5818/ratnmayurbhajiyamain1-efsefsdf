@@ -12,6 +12,7 @@ import { ViewMenuItemDialog } from "@/components/menu-items/view-menu-item-dialo
 import type { MenuItem, Ingredient } from "@/lib/types"
 import { fetchMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from "@/lib/api/menu-items"
 import { fetchIngredients } from "@/lib/api/ingredients"
+import { useLanguage } from "@/lib/language-context"
 
 const typeColors = {
   only_dish: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -21,10 +22,10 @@ const typeColors = {
 }
 
 const typeLabels = {
-  only_dish: "Only bhajiya (KG)",
-  only_dish_with_chart: "Only bhajiya (KG) + Chart",
-  dish_without_chart: "Dish (No Chart)",
-  dish_with_chart: "Dish + Chart",
+  only_dish: "onlyBhajiyaKG",
+  only_dish_with_chart: "dishWithOnlyBhajiya",
+  dish_without_chart: "dishHaveNoChart",
+  dish_with_chart: "dishHaveChartAndBhajiya",
 }
 
 export default function MenuItemsPage() {
@@ -39,6 +40,7 @@ export default function MenuItemsPage() {
   const [viewingMenuItem, setViewingMenuItem] = useState<MenuItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     loadData()
@@ -147,7 +149,7 @@ export default function MenuItemsPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p>Loading menu items...</p>
+            <p>{t.loading} menu items...</p>
           </div>
         </div>
       </div>
@@ -163,7 +165,7 @@ export default function MenuItemsPage() {
               <div className="flex items-center justify-between">
                 <p className="text-destructive">{error}</p>
                 <Button variant="outline" size="sm" onClick={loadData}>
-                  Retry
+                  {t.retry}
                 </Button>
               </div>
             </CardContent>
@@ -173,12 +175,12 @@ export default function MenuItemsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-balance">Menu Items Management</h1>
-            <p className="text-muted-foreground">Manage bhajiya varieties and their recipes</p>
+            <h1 className="text-3xl font-bold text-balance">{t.menuItemManagement}</h1>
+            <p className="text-muted-foreground">{t.manageBhajiyaVarieties}</p>
           </div>
           <Button onClick={openCreateDialog} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add Menu Item
+            {t.addMenuItem}
           </Button>
         </div>
 
@@ -187,7 +189,7 @@ export default function MenuItemsPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search menu items by name or category..."
+              placeholder={t.searchMenuItems}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -231,7 +233,7 @@ export default function MenuItemsPage() {
                 size="sm"
                 onClick={() => setSelectedType(type)}
               >
-                {typeLabels[type as keyof typeof typeLabels]} ({count})
+                {t[typeLabels[type as keyof typeof typeLabels] as keyof typeof t]} ({count})
               </Button>
             ))}
           </div>
@@ -244,7 +246,7 @@ export default function MenuItemsPage() {
               <div className="flex items-center gap-2">
                 <ChefHat className="h-5 w-5 text-blue-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Items</p>
+                  <p className="text-sm text-muted-foreground">{t.totalMenuItems}</p>
                   <p className="text-2xl font-bold">{menuItems.length}</p>
                 </div>
               </div>
@@ -277,7 +279,7 @@ export default function MenuItemsPage() {
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-orange-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Search Results</p>
+                  <p className="text-sm text-muted-foreground">{t.searchResults}</p>
                   <p className="text-2xl font-bold">{filteredMenuItems.length}</p>
                 </div>
               </div>
@@ -296,7 +298,7 @@ export default function MenuItemsPage() {
                     <CardDescription className="mt-1">{item.category}</CardDescription>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge className={typeColors[item.type]} variant="secondary">
-                        {typeLabels[item.type]}
+                        {t[typeLabels[item.type] as keyof typeof t]}
                       </Badge>
                       <Badge variant="outline">{item.ingredients.length} ingredients</Badge>
                     </div>
@@ -362,16 +364,16 @@ export default function MenuItemsPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <ChefHat className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No menu items found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t.noMenuItemsFound}</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || selectedCategory !== "all" || selectedType !== "all"
-                  ? "Try adjusting your search terms or filters"
-                  : "Get started by adding your first menu item"}
+                  ? t.tryAdjustingSearch
+                  : t.getStartedAddMenuItem}
               </p>
               {!searchTerm && selectedCategory === "all" && selectedType === "all" && (
                 <Button onClick={openCreateDialog}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Menu Item
+                  {t.addMenuItem}
                 </Button>
               )}
             </CardContent>

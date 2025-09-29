@@ -25,33 +25,28 @@ import type { Order, OrderMenuItem } from "@/lib/types"
 import { scaleIngredientsWithDualValues } from "@/lib/database"
 import { createClient } from "@/lib/api/clients"
 import { FileText } from "lucide-react"
+import { useLanguage } from "@/lib/language-context"
 
-const orderTypes = [
-  "Wedding",
-  "Birthday Party",
-  "Corporate Event",
-  "Religious Function",
-  "Anniversary",
-  "Festival",
-  "Other",
-]
+const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredients, onSubmit }: OrderDialogProps) => {
+  const { t } = useLanguage()
 
-const menuItemTypes = [
-  { value: "only_dish", label: "Only bhajiya (KG)" },
-  { value: "only_dish_with_chart", label: "Dish with Only bhajiya" },
-  { value: "dish_without_chart", label: "Dish have no Chart" },
-  { value: "dish_with_chart", label: "Dish have Chart & Bhajiya" },
-] as const
+  const orderTypes = [
+    { value: "Wedding", label: t.wedding },
+    { value: "Birthday Party", label: t.birthdayParty },
+    { value: "Corporate Event", label: t.corporateEvent },
+    { value: "Religious Function", label: t.religiousFunction },
+    { value: "Anniversary", label: t.anniversary },
+    { value: "Festival", label: t.festival },
+    { value: "Other", label: t.other },
+  ]
 
-export function OrderDialog({
-  open,
-  onOpenChange,
-  order,
-  clients,
-  menuItems,
-  ingredients,
-  onSubmit,
-}: OrderDialogProps) {
+  const menuItemTypes = [
+    { value: "only_dish", label: t.onlyBhajiyaKG },
+    { value: "only_dish_with_chart", label: t.dishWithOnlyBhajiya },
+    { value: "dish_without_chart", label: t.dishHaveNoChart },
+    { value: "dish_with_chart", label: t.dishHaveChartAndBhajiya },
+  ] as const
+
   const [formData, setFormData] = useState({
     clientId: "",
     clientSnapshot: {
@@ -141,43 +136,43 @@ export function OrderDialog({
     const newErrors: Record<string, string> = {}
 
     if (clientType === "existing" && !formData.clientId) {
-      newErrors.clientId = "Please select a client"
+      newErrors.clientId = t.pleaseSelectClient
     }
 
     if (clientType === "new") {
       if (!formData.clientSnapshot.name.trim()) {
-        newErrors.clientName = "Client name is required"
+        newErrors.clientName = t.clientNameRequired
       }
       if (!formData.clientSnapshot.phone.trim()) {
-        newErrors.clientPhone = "Client phone is required"
+        newErrors.clientPhone = t.clientPhoneRequired
       }
       if (!formData.clientSnapshot.address.trim()) {
-        newErrors.clientAddress = "Client address is required"
+        newErrors.clientAddress = t.clientAddressRequired
       }
     }
 
     if (!formData.numberOfPeople || formData.numberOfPeople <= 0) {
-      newErrors.numberOfPeople = "Number of people must be greater than 0"
+      newErrors.numberOfPeople = t.numberOfPeopleGreaterThanZero
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = "Event address is required"
+      newErrors.address = t.eventAddressRequired
     }
 
     if (!formData.orderType) {
-      newErrors.orderType = "Order type is required"
+      newErrors.orderType = t.orderTypeRequired
     }
 
     if (!formData.orderDate) {
-      newErrors.orderDate = "Order date is required"
+      newErrors.orderDate = t.orderDateRequired
     }
 
     if (!formData.orderTime) {
-      newErrors.orderTime = "Order time is required"
+      newErrors.orderTime = t.orderTimeRequired
     }
 
     if (formData.selectedMenuItems.length === 0) {
-      newErrors.selectedMenuItems = "At least one menu item must be selected"
+      newErrors.selectedMenuItems = t.atLeastOneMenuItemRequired
     }
 
     setErrors(newErrors)
@@ -226,27 +221,45 @@ export function OrderDialog({
         selectedType: selectedType as "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart",
         ingredients: menuItem.ingredients.map((ing) => {
           const ingredient = ingredients.find((i) => i._id === ing.ingredientId)!
+
+          const singleItems = ing.singleItems || {
+            onlyDishQuantity: ing.onlyDishQuantity,
+            onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity,
+            dishWithoutChartQuantity: ing.dishWithoutChartQuantity,
+            dishWithChartQuantity: ing.dishWithChartQuantity,
+          }
+
+          const multiItems = ing.multiItems || {
+            onlyDishQuantity: ing.onlyDishQuantity * 0.7,
+            onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity * 0.7,
+            dishWithoutChartQuantity: ing.dishWithoutChartQuantity * 0.7,
+            dishWithChartQuantity: ing.dishWithChartQuantity * 0.7,
+          }
+
           let quantityPer100: number
           switch (selectedType) {
             case "only_dish":
-              quantityPer100 = ing.onlyDishQuantity
+              quantityPer100 = singleItems.onlyDishQuantity
               break
             case "only_dish_with_chart":
-              quantityPer100 = ing.onlyDishWithChartQuantity
+              quantityPer100 = singleItems.onlyDishWithChartQuantity
               break
             case "dish_without_chart":
-              quantityPer100 = ing.dishWithoutChartQuantity
+              quantityPer100 = singleItems.dishWithoutChartQuantity
               break
             case "dish_with_chart":
-              quantityPer100 = ing.dishWithChartQuantity
+              quantityPer100 = singleItems.dishWithChartQuantity
               break
             default:
-              quantityPer100 = ing.onlyDishQuantity
+              quantityPer100 = singleItems.onlyDishQuantity
           }
+
           return {
             ingredientId: ing.ingredientId,
             ingredientName: ingredient.name,
             unit: ingredient.unit,
+            singleItems,
+            multiItems,
             quantityPer100,
           }
         }),
@@ -365,23 +378,21 @@ export function OrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{order ? "Edit Order" : "Create New Order"}</DialogTitle>
-          <DialogDescription>
-            {order ? "Update order information below." : "Enter order information below."}
-          </DialogDescription>
+          <DialogTitle>{order ? t.editOrder : t.createOrder}</DialogTitle>
+          <DialogDescription>{order ? t.updateOrderInfo : t.enterOrderInfo}</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="menu">Menu & Items</TabsTrigger>
-            <TabsTrigger value="additional">Additional Info</TabsTrigger>
+            <TabsTrigger value="basic">{t.basicInfo}</TabsTrigger>
+            <TabsTrigger value="menu">{t.menuItems}</TabsTrigger>
+            <TabsTrigger value="additional">{t.additionalInfo}</TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSubmit}>
             <TabsContent value="basic" className="space-y-4">
               <div className="grid gap-2">
-                <Label>Client *</Label>
+                <Label>{t.client}</Label>
                 <div className="flex gap-4">
                   <div className="flex items-center space-x-2">
                     <input
@@ -391,7 +402,7 @@ export function OrderDialog({
                       checked={clientType === "existing"}
                       onChange={() => setClientType("existing")}
                     />
-                    <Label htmlFor="existing-client">Existing Client</Label>
+                    <Label htmlFor="existing-client">{t.existingClient}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input
@@ -401,7 +412,7 @@ export function OrderDialog({
                       checked={clientType === "new"}
                       onChange={() => setClientType("new")}
                     />
-                    <Label htmlFor="new-client">New Client</Label>
+                    <Label htmlFor="new-client">{t.newClient}</Label>
                   </div>
                 </div>
 
@@ -409,7 +420,7 @@ export function OrderDialog({
                   <div>
                     <Select value={formData.clientId} onValueChange={(value) => handleInputChange("clientId", value)}>
                       <SelectTrigger className={errors.clientId ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Select a client" />
+                        <SelectValue placeholder={t.selectClient} />
                       </SelectTrigger>
                       <SelectContent>
                         {clients.map((client) => (
@@ -427,22 +438,22 @@ export function OrderDialog({
                 ) : (
                   <Card>
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-sm">New Client Information (will be added to database)</CardTitle>
+                      <CardTitle className="text-sm">{t.newClientInfo}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="grid gap-2">
-                        <Label htmlFor="client-name">Name *</Label>
+                        <Label htmlFor="client-name">{t.name}</Label>
                         <MultilingualInput
                           id="client-name"
                           value={formData.clientSnapshot.name}
                           onChange={(e) => handleInputChange("clientSnapshot.name", e.target.value)}
-                          placeholder="Client name"
+                          placeholder={t.clientNamePlaceholder}
                           className={errors.clientName ? "border-destructive" : ""}
                         />
                         {errors.clientName && <p className="text-sm text-destructive">{errors.clientName}</p>}
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="client-phone">Phone *</Label>
+                        <Label htmlFor="client-phone">{t.phone}</Label>
                         <MultilingualInput
                           id="client-phone"
                           value={formData.clientSnapshot.phone}
@@ -453,24 +464,24 @@ export function OrderDialog({
                         {errors.clientPhone && <p className="text-sm text-destructive">{errors.clientPhone}</p>}
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="client-address">Address *</Label>
+                        <Label htmlFor="client-address">{t.address}</Label>
                         <MultilingualTextarea
                           id="client-address"
                           value={formData.clientSnapshot.address}
                           onChange={(e) => handleInputChange("clientSnapshot.address", e.target.value)}
-                          placeholder="Client address"
+                          placeholder={t.clientAddressPlaceholder}
                           className={errors.clientAddress ? "border-destructive" : ""}
                           rows={2}
                         />
                         {errors.clientAddress && <p className="text-sm text-destructive">{errors.clientAddress}</p>}
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="client-reference">Reference</Label>
+                        <Label htmlFor="client-reference">{t.reference}</Label>
                         <MultilingualInput
                           id="client-reference"
                           value={formData.clientSnapshot.reference}
                           onChange={(e) => handleInputChange("clientSnapshot.reference", e.target.value)}
-                          placeholder="How did they find you?"
+                          placeholder={t.howDidTheyFindYou}
                         />
                       </div>
                     </CardContent>
@@ -480,7 +491,7 @@ export function OrderDialog({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="numberOfPeople">Number of People *</Label>
+                  <Label htmlFor="numberOfPeople">{t.numberOfPeople}</Label>
                   <MultilingualInput
                     id="numberOfPeople"
                     type="number"
@@ -494,15 +505,15 @@ export function OrderDialog({
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="orderType">Order Type *</Label>
+                  <Label htmlFor="orderType">{t.orderType}</Label>
                   <Select value={formData.orderType} onValueChange={(value) => handleInputChange("orderType", value)}>
                     <SelectTrigger className={errors.orderType ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Select order type" />
+                      <SelectValue placeholder={t.selectOrderType} />
                     </SelectTrigger>
                     <SelectContent>
                       {orderTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -513,7 +524,7 @@ export function OrderDialog({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="orderDate">Order Date *</Label>
+                  <Label htmlFor="orderDate">{t.orderDate}</Label>
                   <MultilingualInput
                     id="orderDate"
                     type="date"
@@ -525,7 +536,7 @@ export function OrderDialog({
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="orderTime">Order Time *</Label>
+                  <Label htmlFor="orderTime">{t.orderTime}</Label>
                   <MultilingualInput
                     id="orderTime"
                     type="time"
@@ -538,12 +549,12 @@ export function OrderDialog({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="address">Event Address *</Label>
+                <Label htmlFor="address">{t.eventAddress}</Label>
                 <MultilingualTextarea
                   id="address"
                   value={formData.address}
                   onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Complete event address"
+                  placeholder={t.completeEventAddress}
                   className={errors.address ? "border-destructive" : ""}
                   rows={3}
                 />
@@ -553,7 +564,7 @@ export function OrderDialog({
 
             <TabsContent value="menu" className="space-y-4">
               <div className="grid gap-2">
-                <Label>Menu Items *</Label>
+                <Label>{t.menuItems}</Label>
                 <div className="space-y-3">
                   {menuItems.map((menuItem) => {
                     const selectedItem = formData.selectedMenuItems.find((item) => item.menuItemId === menuItem._id!)
@@ -575,7 +586,9 @@ export function OrderDialog({
                                 </Label>
                                 <div className="flex items-center gap-2 mt-1">
                                   <Badge variant="outline">{menuItem.category}</Badge>
-                                  <Badge variant="secondary">{menuItem.ingredients.length} ingredients</Badge>
+                                  <Badge variant="secondary">
+                                    {menuItem.ingredients.length} {t.ingredients}
+                                  </Badge>
                                   <Badge variant="default">{menuItem.type.replace(/_/g, " ")}</Badge>
                                 </div>
                               </div>
@@ -584,7 +597,7 @@ export function OrderDialog({
                             {isSelected && (
                               <div className="ml-6 grid gap-2">
                                 <Label htmlFor={`type-${menuItem._id}`} className="text-sm">
-                                  Select Type for this Order:
+                                  {t.selectTypeForOrder}
                                 </Label>
                                 <Select
                                   value={selectedItem.selectedType}
@@ -617,7 +630,7 @@ export function OrderDialog({
                   <CardHeader className="pb-3 bg-muted/30">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      Ingredient Requirements (for {formData.numberOfPeople} people)
+                      {t.ingredientRequirements} ({formData.numberOfPeople} {t.people})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-4">
@@ -642,17 +655,17 @@ export function OrderDialog({
             <TabsContent value="additional" className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="vehicleOwnerName">Vehicle Owner Name</Label>
+                  <Label htmlFor="vehicleOwnerName">{t.vehicleOwnerName}</Label>
                   <MultilingualInput
                     id="vehicleOwnerName"
                     value={formData.vehicleOwnerName}
                     onChange={(e) => handleInputChange("vehicleOwnerName", e.target.value)}
-                    placeholder="Transport company/owner"
+                    placeholder={t.transportCompanyOrOwner}
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="phoneNumber">Vehicle Phone Number</Label>
+                  <Label htmlFor="phoneNumber">{t.vehiclePhoneNumber}</Label>
                   <MultilingualInput
                     id="phoneNumber"
                     value={formData.phoneNumber}
@@ -664,17 +677,17 @@ export function OrderDialog({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="chefName">Chef Name</Label>
+                  <Label htmlFor="chefName">{t.chefName}</Label>
                   <MultilingualInput
                     id="chefName"
                     value={formData.chefName}
                     onChange={(e) => handleInputChange("chefName", e.target.value)}
-                    placeholder="Chef name"
+                    placeholder={t.chefNamePlaceholder}
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="chefPhoneNumber">Chef Phone Number</Label>
+                  <Label htmlFor="chefPhoneNumber">{t.chefPhoneNumber}</Label>
                   <MultilingualInput
                     id="chefPhoneNumber"
                     value={formData.chefPhoneNumber}
@@ -686,7 +699,7 @@ export function OrderDialog({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="vehicleNumberPlaceholder">Vehicle Number</Label>
+                  <Label htmlFor="vehicleNumberPlaceholder">{t.vehicleNumber}</Label>
                   <MultilingualInput
                     id="vehicleNumberPlaceholder"
                     value={formData.vehicleNumberPlaceholder}
@@ -696,23 +709,23 @@ export function OrderDialog({
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="addHelper">Additional Helper</Label>
+                  <Label htmlFor="addHelper">{t.additionalHelper}</Label>
                   <MultilingualInput
                     id="addHelper"
                     value={formData.addHelper}
                     onChange={(e) => handleInputChange("addHelper", e.target.value)}
-                    placeholder="Helper name"
+                    placeholder={t.helperNamePlaceholder}
                   />
                 </div>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">{t.notes}</Label>
                 <MultilingualTextarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => handleInputChange("notes", e.target.value)}
-                  placeholder="Additional notes or special instructions"
+                  placeholder={t.additionalNotesOrSpecialInstructions}
                   rows={3}
                 />
               </div>
@@ -720,9 +733,9 @@ export function OrderDialog({
 
             <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t.cancel}
               </Button>
-              <Button type="submit">{order ? "Update Order" : "Create Order"}</Button>
+              <Button type="submit">{order ? t.updateOrder : t.createOrder}</Button>
             </DialogFooter>
           </form>
         </Tabs>
@@ -730,3 +743,5 @@ export function OrderDialog({
     </Dialog>
   )
 }
+
+export { OrderDialog }

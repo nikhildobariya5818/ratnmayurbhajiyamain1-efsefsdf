@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { useLanguage } from "@/lib/language-context"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +25,7 @@ interface ClientDialogProps {
 }
 
 export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDialogProps) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -60,17 +61,17 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
     const newErrors: Record<string, string> = {}
 
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
+      newErrors.name = t.required
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required"
-    } else if (!/^[+]?[0-9\s\-$$$$]{10,}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number"
+      newErrors.phone = t.required
+    } else if (!/^[+]?[0-9\s\-()]{10,}$/.test(formData.phone)) {
+      newErrors.phone = t.invalidPhone
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = "Address is required"
+      newErrors.address = t.required
     }
 
     setErrors(newErrors)
@@ -104,7 +105,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{client ? "Edit Client" : "Add New Client"}</DialogTitle>
+          <DialogTitle>{client ? t.edit + " " + t.clients : t.addClient}</DialogTitle>
           <DialogDescription>
             {client ? "Update client information below." : "Enter client information below."}
           </DialogDescription>
@@ -112,7 +113,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">{t.name} *</Label>
               <MultilingualInput
                 id="name"
                 value={formData.name}
@@ -124,7 +125,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone">{t.phone} *</Label>
               <MultilingualInput
                 id="phone"
                 value={formData.phone}
@@ -136,7 +137,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="address">Address *</Label>
+              <Label htmlFor="address">{t.address} *</Label>
               <MultilingualTextarea
                 id="address"
                 value={formData.address}
@@ -149,7 +150,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="reference">Reference</Label>
+              <Label htmlFor="reference">{t.reference}</Label>
               <MultilingualInput
                 id="reference"
                 value={formData.reference}
@@ -159,7 +160,7 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t.notes}</Label>
               <MultilingualTextarea
                 id="notes"
                 value={formData.notes}
@@ -171,9 +172,9 @@ export function ClientDialog({ open, onOpenChange, client, onSubmit }: ClientDia
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t.cancel}
             </Button>
-            <Button type="submit">{client ? "Update Client" : "Add Client"}</Button>
+            <Button type="submit">{client ? t.edit + " " + t.clients : t.addClient}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

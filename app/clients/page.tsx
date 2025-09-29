@@ -96,7 +96,9 @@ export default function ClientsPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p>Loading clients...</p>
+            <p>
+              {t.loading} {t.clients}...
+            </p>
           </div>
         </div>
       </div>
@@ -112,7 +114,7 @@ export default function ClientsPage() {
               <div className="flex items-center justify-between">
                 <p className="text-destructive">{error}</p>
                 <Button variant="outline" size="sm" onClick={loadClients}>
-                  Retry
+                  {t.retry}
                 </Button>
               </div>
             </CardContent>

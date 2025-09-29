@@ -1,6 +1,6 @@
-import { Document, Page, Text, View, StyleSheet,Image } from "@react-pdf/renderer"
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
 import type { Order } from "@/lib/types"
-import { scaleIngredients } from "@/lib/database"
+import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
 import { StaticGujaratiPage } from "./StaticGujaratiPage"
 import { detectTextScript } from "@/lib/language-detection"
 
@@ -283,7 +283,14 @@ function needsMultilingualFont(text: string): boolean {
 
 export function OrderPDF({ order }: { order: Order }) {
   const client = order.client || order.clientSnapshot
-  const scaledIngredients = scaleIngredients(order.menuItems, order.numberOfPeople)
+
+  const hasDualValues = order.menuItems.some((item) =>
+    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  )
+
+  const scaledIngredients = hasDualValues
+    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
+    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const ingredientData =
     scaledIngredients && scaledIngredients.length > 0
@@ -459,8 +466,7 @@ export function OrderPDF({ order }: { order: Order }) {
                   <View key={index} style={styles.formRow}>
                     <Text style={styles.menuNumber}>{String(index + 1).padStart(2, "0")})</Text>
                     <Text style={styles.formLabel}>{item.name}</Text>
-                    <View style={styles.formUnderline}>
-                    </View>
+                    <View style={styles.formUnderline}></View>
                   </View>
                 ))}
               </View>
@@ -471,8 +477,7 @@ export function OrderPDF({ order }: { order: Order }) {
                       {String(Math.ceil(order.menuItems.length / 2) + index + 1).padStart(2, "0")})
                     </Text>
                     <Text style={styles.formLabel}>{item.name}</Text>
-                    <View style={styles.formUnderline}>
-                    </View>
+                    <View style={styles.formUnderline}></View>
                   </View>
                 ))}
               </View>
@@ -511,7 +516,7 @@ export function OrderPDF({ order }: { order: Order }) {
             </View>
           </View>
         </View>
-            
+
         <View style={styles.formSection}>
           <View style={styles.twoColumnRow}>
             <View style={styles.col}>

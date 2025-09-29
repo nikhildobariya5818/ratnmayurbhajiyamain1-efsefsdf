@@ -64,7 +64,19 @@ export interface OrderMenuItem {
     ingredientId: string
     ingredientName: string
     unit: string
-    quantityPer100: number // This will be the quantity for the selected type
+    singleItems?: {
+      onlyDishQuantity: number
+      onlyDishWithChartQuantity: number
+      dishWithoutChartQuantity: number
+      dishWithChartQuantity: number
+    }
+    multiItems?: {
+      onlyDishQuantity: number
+      onlyDishWithChartQuantity: number
+      dishWithoutChartQuantity: number
+      dishWithChartQuantity: number
+    }
+    quantityPer100: number // Legacy field for backward compatibility
   }[]
 }
 

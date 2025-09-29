@@ -150,7 +150,9 @@ export default function OrdersPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p>{t.loading} orders...</p>
+            <p>
+              {t.loading} {t.orders}...
+            </p>
           </div>
         </div>
       </div>
@@ -175,12 +177,12 @@ export default function OrdersPage() {
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-balance">{t.orders} Management</h1>
+            <h1 className="text-3xl font-bold text-balance">{t.orderManagement}</h1>
             <p className="text-muted-foreground">{t.createManageOrders}</p>
           </div>
           <Button onClick={openCreateDialog} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Create {t.orders}
+            {t.createOrder}
           </Button>
         </div>
 
@@ -188,7 +190,7 @@ export default function OrdersPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search orders by client, type, or address..."
+              placeholder={t.searchOrders}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -222,7 +224,7 @@ export default function OrdersPage() {
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-blue-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total {t.orders}</p>
+                  <p className="text-sm text-muted-foreground">{t.totalOrders}</p>
                   <p className="text-2xl font-bold">{orders.length}</p>
                 </div>
               </div>
@@ -244,7 +246,7 @@ export default function OrdersPage() {
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-purple-600" />
                 <div>
-                  <p className="text-sm text-muted-foreground">This Month</p>
+                  <p className="text-sm text-muted-foreground">{t.thisMonth}</p>
                   <p className="text-2xl font-bold">
                     {
                       orders.filter((order) => {
@@ -379,16 +381,14 @@ export default function OrdersPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t.noOrdersFound}</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || selectedOrderType !== "all"
-                  ? "Try adjusting your search terms or filters"
-                  : "Get started by creating your first order"}
+                {searchTerm || selectedOrderType !== "all" ? t.tryAdjustingSearch : t.getStartedCreateOrder}
               </p>
               {!searchTerm && selectedOrderType === "all" && (
                 <Button onClick={openCreateDialog}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create {t.orders}
+                  {t.createOrder}
                 </Button>
               )}
             </CardContent>

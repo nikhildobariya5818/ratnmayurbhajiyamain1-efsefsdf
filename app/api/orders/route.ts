@@ -175,11 +175,30 @@ export async function POST(request: NextRequest) {
       const ingredients = []
       for (const ing of menuItem.ingredients) {
         const ingredientDetails = await IngredientModel.findById(ing.ingredientId)
+
+        const singleItems = ing.singleItems || {
+          onlyDishQuantity: ing.onlyDishQuantity,
+          onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity,
+          dishWithoutChartQuantity: ing.dishWithoutChartQuantity,
+          dishWithChartQuantity: ing.dishWithChartQuantity,
+        }
+
+        const multiItems = ing.multiItems || {
+          onlyDishQuantity: ing.onlyDishQuantity * 0.7,
+          onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity * 0.7,
+          dishWithoutChartQuantity: ing.dishWithoutChartQuantity * 0.7,
+          dishWithChartQuantity: ing.dishWithChartQuantity * 0.7,
+        }
+
         ingredients.push({
           ingredientId: ing.ingredientId,
           ingredientName: ingredientDetails?.name || "Unknown Ingredient",
           unit: ingredientDetails?.unit || "piece",
-          quantityPer100: getQuantityForType(ing, orderMenuItem.selectedType),
+          // Store both single and multi values instead of just quantityPer100
+          singleItems,
+          multiItems,
+          // Keep legacy field for backward compatibility
+          quantityPer100: getQuantityForType(singleItems, orderMenuItem.selectedType),
         })
       }
 

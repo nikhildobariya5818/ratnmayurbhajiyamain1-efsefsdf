@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Download, Users, ChefHat, FileText, Phone, Truck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { OrderPDF } from "./pdf/OrderPDF" // <- your @react-pdf/renderer document
+import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
 import { generatePDFFilename } from "@/lib/pdf-utils"
 
 interface PDFReportProps {
@@ -17,14 +18,14 @@ interface PDFReportProps {
 
 export function PDFReport({ order, onClose }: PDFReportProps) {
   const client = order.client || order.clientSnapshot
-  const scaledIngredients = order.menuItems.flatMap((item) =>
-    item.ingredients.map((ing) => ({
-      ...ing,
-      ingredientName: ing.ingredientName,
-      totalQuantity: ing.quantity * order.numberOfPeople,
-      unit: ing.unit,
-    })),
+
+  const hasDualValues = order.menuItems.some((item) =>
+    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
   )
+
+  const scaledIngredients = hasDualValues
+    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
+    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const pdfFilename = generatePDFFilename(client?.name || "Unknown_Client", order.orderDate)
 

@@ -215,6 +215,14 @@ export interface Translations {
 
   // Additional translations
   toggleMenu: string
+
+  selectTypeForOrder: string
+
+  // Menu Item Type Labels
+  onlyBhajiyaKG: string
+  dishWithOnlyBhajiya: string
+  dishHaveNoChart: string
+  dishHaveChartAndBhajiya: string
 }
 
 export const translations: Record<Language, Translations> = {
@@ -433,6 +441,14 @@ export const translations: Record<Language, Translations> = {
 
     // Additional translations
     toggleMenu: "Toggle menu",
+
+    selectTypeForOrder: "Select Type for this Order:",
+
+    // Menu Item Type Labels
+    onlyBhajiyaKG: "Only bhajiya (KG)",
+    dishWithOnlyBhajiya: "Dish with Only bhajiya",
+    dishHaveNoChart: "Dish have no Chart",
+    dishHaveChartAndBhajiya: "Dish have Chart & Bhajiya",
   },
 
   hi: {
@@ -454,7 +470,7 @@ export const translations: Record<Language, Translations> = {
     manageBhajiyaVarieties: "भजिया किस्मों और व्यंजनों का प्रबंधन करें",
     createManageOrders: "कैटरिंग ऑर्डर बनाएं और प्रबंधित करें",
     generatePDFReports: "पीडीएफ रिपोर्ट और एनालिटिक्स जेनरेट करें",
-    systemSettings: "सिस्टम सेटिंग्स और कॉन��फ़िगरेशन",
+    systemSettings: "सिस्टम सेटिंग्स और कॉनफ़िगरेशन",
 
     // Common
     add: "जोड़ें",
@@ -526,7 +542,7 @@ export const translations: Record<Language, Translations> = {
     getStartedAddIngredient: "अपनी पहली सामग्री जोड़कर शुरुआत करें",
 
     // Additional common terms
-    loading: "लोड हो रहा है",
+    loading: "लोડ हो रहा है",
     retry: "पुनः प्रयास करें",
     added: "जोड़ा गया",
 
@@ -586,7 +602,7 @@ export const translations: Record<Language, Translations> = {
     // Order Types
     wedding: "शादी",
     birthdayParty: "जन्मदिन पार्टी",
-    corporateEvent: "कॉर्पोरेट इवेंट",
+    corporateEvent: "कॉર्पोરेट इवेंट",
     religiousFunction: "धार्मिक समारोह",
     anniversary: "वર्षगांठ",
     festival: "त्योहार",
@@ -635,8 +651,8 @@ export const translations: Record<Language, Translations> = {
     menuItemUpdated: "मेनू आइटम सफलतापूर्वक अपडेट किया गया",
     menuItemDeleted: "मेनू आइटम सफलतापूर्वक हटाया गया",
     orderCreated: "ऑर्डर सफलतापूर्वक बनाया गया",
-    orderUpdated: "ऑર्डर सफलतापूर्वक अपडेट किया गया",
-    orderDeleted: "ऑર्डर सफलतापूર्वक हटाया गया",
+    orderUpdated: "ऑर्डर सफलतापूर्वक अपडेट किया गया",
+    orderDeleted: "ऑર्डर सफलतापूर्वक हटाया गया",
     reportGenerated: "रिपोर्ट सफलतापूर्वक जेनरेट की गई",
 
     // Error Messages
@@ -645,11 +661,19 @@ export const translations: Record<Language, Translations> = {
     failedToUpdate: "आइटम अपडेट करने में विफल",
     failedToDelete: "आइटम हटाने में विफल",
     networkError: "नेटवર्क कनेक्शन त्रुटि",
-    serverError: "सर्वर त्रुटि हुई",
+    serverError: "सर्वર त्रुटि हुई",
     unknownError: "एक अज्ञात त्रुटि हुई",
 
     // Additional translations
     toggleMenu: "मेनू टॉगल करें",
+
+    selectTypeForOrder: "इस ऑર्डर के लिए प्रकार चुनें:",
+
+    // Menu Item Type Labels
+    onlyBhajiyaKG: "केवल भजिया (किलो)",
+    dishWithOnlyBhajiya: "केवल भजिया वाला व्यंजन",
+    dishHaveNoChart: "डिश में चार्ट नहीं है",
+    dishHaveChartAndBhajiya: "इस डिश में चार्ट और भजिया भी है",
   },
 
   gu: {
@@ -834,7 +858,7 @@ export const translations: Record<Language, Translations> = {
 
     // Validation Messages
     required: "આ ફીલ્ડ આવશ્યક છે",
-    invalidEmail: "કૃપા કર��ને માન્ય ઈમેલ સરનામું દાખલ કરો",
+    invalidEmail: "કૃપા કરને માન્ય ઈમેલ સરનામું દાખલ કરો",
     invalidPhone: "કૃપા કરીને માન્ય ફોન નંબર દાખલ કરો",
     minimumLength: "ન્યૂનતમ લંબાઈ આવશ્યક",
     maximumLength: "મહત્તમ લંબાઈ વટાવી",
@@ -867,6 +891,14 @@ export const translations: Record<Language, Translations> = {
 
     // Additional translations
     toggleMenu: "મેનુ ટૉગલ કરો",
+
+    selectTypeForOrder: "આ ઓર્ડર માટે પ્રકાર પસંદ કરો:",
+
+    // Menu Item Type Labels
+    onlyBhajiyaKG: "ફક્ત ભજીયા (કિલો)",
+    dishWithOnlyBhajiya: "ફક્ત ભજીયા સાથેની વાનગી",
+    dishHaveNoChart: "ડીશમાં ચાર્ટ નથી",
+    dishHaveChartAndBhajiya: "વાનગીમાં ચાર્ટ અને ભજીયા છે",
   },
 }
 
