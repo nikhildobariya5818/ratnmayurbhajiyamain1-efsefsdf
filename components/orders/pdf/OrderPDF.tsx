@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 100,
+    height: 100,
   },
   brandContainer: {
     flexDirection: "column",
@@ -295,22 +295,31 @@ export function OrderPDF({ order }: { order: Order }) {
   const ingredientData =
     scaledIngredients && scaledIngredients.length > 0
       ? scaledIngredients.map((ing) => ({
-          name: ing.ingredientName,
-          quantity: ing.totalQuantity,
-          unit: ing.unit,
-        }))
+        name: ing.ingredientName,
+        quantity: ing.totalQuantity,
+        unit: ing.unit,
+      }))
       : [
-          { name: "કંદાના (Sweet Potato)", quantity: 15, unit: "kg" },
-          { name: "આદુ", quantity: 2.5, unit: "kg" },
-          { name: "મરચા", quantity: 2.5, unit: "kg" },
-          { name: "લસણ", quantity: 1.25, unit: "kg" },
-          { name: "મેથી", quantity: 2.5, unit: "kg" },
-          { name: "મરચી", quantity: 0.63, unit: "kg" },
-          { name: "ભજીયા નો લોટ", quantity: 7.5, unit: "kg" },
-          { name: "ટમેટા પૂરી (Sweet Tomato Puri)", quantity: 17.5, unit: "kg" },
-        ]
+        { name: "કંદાના (Sweet Potato)", quantity: 15, unit: "kg" },
+        { name: "આદુ", quantity: 2.5, unit: "kg" },
+        { name: "મરચા", quantity: 2.5, unit: "kg" },
+        { name: "લસણ", quantity: 1.25, unit: "kg" },
+        { name: "મેથી", quantity: 2.5, unit: "kg" },
+        { name: "મરચી", quantity: 0.63, unit: "kg" },
+        { name: "ભજીયા નો લોટ", quantity: 7.5, unit: "kg" },
+        { name: "ટમેટા પૂરી (Sweet Tomato Puri)", quantity: 17.5, unit: "kg" },
+      ]
 
   console.log("Scaled Ingredients:", scaledIngredients) // Added debug logging
+
+  function formatDateDDMMYYYY(dateInput: string | Date) {
+    const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput
+    const day = String(date.getDate()).padStart(2, "0")
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+  }
+
 
   return (
     <Document>
@@ -319,13 +328,13 @@ export function OrderPDF({ order }: { order: Order }) {
         <View style={styles.headerWrap} fixed>
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Image style={styles.logo} src="/images/ratn-mayur-logo.png" />
+              <Image style={styles.logo} src="/images/ratn-mayur-logo.jpg" />
               {/* <View style={styles.brandContainer}>
                 <Text style={styles.brand}>Ratn Mayur Bhajiya</Text>
                 <Text style={styles.subBrand}>Catering Order Report</Text>
               </View> */}
             </View>
-            <Text style={styles.dynamicDate}>{new Date(order.orderDate).toLocaleDateString()}</Text>
+            {/* <Text style={styles.dynamicDate}>{new Date(order.orderDate).toLocaleDateString()}</Text> */}
           </View>
         </View>
 
@@ -345,7 +354,9 @@ export function OrderPDF({ order }: { order: Order }) {
             <View style={styles.columnItem}>
               <Text style={styles.formLabel}>તારીખ :</Text>
               <View style={styles.formUnderline}>
-                <Text style={styles.formValue}>{new Date(order.orderDate).toLocaleDateString()}</Text>
+                <Text style={styles.formValue}>
+                  {formatDateDDMMYYYY(order.orderDate)}
+                </Text>
               </View>
             </View>
           </View>
