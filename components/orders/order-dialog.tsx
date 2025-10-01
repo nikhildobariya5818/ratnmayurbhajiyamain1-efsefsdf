@@ -31,14 +31,11 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
   const { t } = useLanguage()
 
   const orderTypes = [
-    { value: "Wedding", label: t.wedding },
-    { value: "Birthday Party", label: t.birthdayParty },
-    { value: "Corporate Event", label: t.corporateEvent },
-    { value: "Religious Function", label: t.religiousFunction },
-    { value: "Anniversary", label: t.anniversary },
-    { value: "Festival", label: t.festival },
-    { value: "Other", label: t.other },
-  ]
+    { value: "only_dish", label: t.onlyBhajiyaKG },
+    { value: "only_dish_with_chart", label: t.dishWithOnlyBhajiya },
+    { value: "dish_without_chart", label: t.dishHaveNoChart },
+    { value: "dish_with_chart", label: t.dishHaveChartAndBhajiya },
+  ] as const
 
   const menuItemTypes = [
     { value: "only_dish", label: t.onlyBhajiyaKG },
@@ -91,7 +88,11 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
         orderTime: order.orderTime,
         selectedMenuItems: order.menuItems.map((item) => ({
           menuItemId: item.menuItemId,
-          selectedType: item.selectedType || item.type,
+          selectedType: (item.selectedType || order.orderType) as
+            | "only_dish"
+            | "only_dish_with_chart"
+            | "dish_without_chart"
+            | "dish_with_chart",
         })),
         vehicleOwnerName: order.vehicleOwnerName || "",
         phoneNumber: order.phoneNumber || "",
@@ -299,7 +300,24 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
         },
       }))
     } else {
-      setFormData((prev) => ({ ...prev, [field]: value }))
+      setFormData((prev) => {
+        if (field === "orderType") {
+          const propagatedType = String(value) as
+            | "only_dish"
+            | "only_dish_with_chart"
+            | "dish_without_chart"
+            | "dish_with_chart"
+          return {
+            ...prev,
+            orderType: propagatedType,
+            selectedMenuItems: prev.selectedMenuItems.map((item) => ({
+              ...item,
+              selectedType: propagatedType,
+            })),
+          }
+        }
+        return { ...prev, [field]: value }
+      })
     }
 
     if (errors[field]) {
@@ -310,10 +328,14 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
   const handleMenuItemToggle = (menuItemId: string, checked: boolean) => {
     setFormData((prev) => {
       if (checked) {
-        const menuItem = menuItems.find((item) => item._id === menuItemId)!
+        const globalType = (prev.orderType || "only_dish") as
+          | "only_dish"
+          | "only_dish_with_chart"
+          | "dish_without_chart"
+          | "dish_with_chart"
         return {
           ...prev,
-          selectedMenuItems: [...prev.selectedMenuItems, { menuItemId, selectedType: menuItem.type }],
+          selectedMenuItems: [...prev.selectedMenuItems, { menuItemId, selectedType: globalType }],
         }
       } else {
         return {
@@ -325,15 +347,6 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
     if (errors.selectedMenuItems) {
       setErrors((prev) => ({ ...prev, selectedMenuItems: "" }))
     }
-  }
-
-  const handleMenuItemTypeChange = (menuItemId: string, selectedType: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedMenuItems: prev.selectedMenuItems.map((item) =>
-        item.menuItemId === menuItemId ? { ...item, selectedType } : item,
-      ),
-    }))
   }
 
   const scaledIngredients =
@@ -593,29 +606,6 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
                                 </div>
                               </div>
                             </div>
-
-                            {isSelected && (
-                              <div className="ml-6 grid gap-2">
-                                <Label htmlFor={`type-${menuItem._id}`} className="text-sm">
-                                  {t.selectTypeForOrder}
-                                </Label>
-                                <Select
-                                  value={selectedItem.selectedType}
-                                  onValueChange={(value) => handleMenuItemTypeChange(menuItem._id!, value)}
-                                >
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {menuItemTypes.map((type) => (
-                                      <SelectItem key={type.value} value={type.value}>
-                                        {type.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
                           </div>
                         </CardContent>
                       </Card>

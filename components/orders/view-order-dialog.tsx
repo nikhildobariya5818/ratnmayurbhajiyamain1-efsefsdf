@@ -17,6 +17,7 @@ import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database
 import { pdf } from "@react-pdf/renderer"
 import { useState } from "react"
 import { OrderPDF } from "./pdf/OrderPDF"
+import { generatePDFFilename } from "@/lib/pdf-utils"
 
 interface ViewOrderDialogProps {
   open: boolean
@@ -46,7 +47,7 @@ export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogPr
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
       link.href = url
-      link.download = `order-${order._id}-${new Date().toISOString().split("T")[0]}.pdf`
+      link.download = generatePDFFilename(client?.name || "Unknown_Client", order.orderDate)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)

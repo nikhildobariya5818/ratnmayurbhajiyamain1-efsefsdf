@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Edit, Trash2, FileText, Users, Calendar, MapPin, Loader2, Download } from "lucide-react"
+import { Plus, Search, Edit, Trash2, FileText, Users, Calendar, MapPin, Loader2, Download, ChefHat } from "lucide-react"
 import { OrderDialog } from "@/components/orders/order-dialog"
 import { DeleteOrderDialog } from "@/components/orders/delete-order-dialog"
 import { ViewOrderDialog } from "@/components/orders/view-order-dialog"
 import { PDFReportDialog } from "@/components/orders/pdf-report-dialog"
+import { IngredientsOnlyPDFDialog } from "@/components/orders/ingredients-only-pdf-dialog"
 import type { Order, Client, MenuItem, Ingredient } from "@/lib/types"
 import { useLanguage } from "@/lib/language-context"
 import { fetchOrders, createOrder, updateOrder, deleteOrder } from "@/lib/api/orders"
@@ -40,6 +41,7 @@ export default function OrdersPage() {
   const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null)
   const [pdfReportOrder, setPdfReportOrder] = useState<Order | null>(null)
+  const [ingredientOnlyOrder, setIngredientOnlyOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -102,6 +104,9 @@ export default function OrdersPage() {
       const updatedClients = await fetchClients()
       setClients(updatedClients)
       setIsDialogOpen(false)
+
+      // Open Ingredients-only PDF preview automatically
+      setIngredientOnlyOrder(newOrder)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create order")
     }
@@ -309,6 +314,15 @@ export default function OrdersPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => setIngredientOnlyOrder(order)}
+                        className="h-8 w-8 p-0"
+                        title="Ingredients PDF Preview"
+                      >
+                        <ChefHat className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setPdfReportOrder(order)}
                         className="h-8 w-8 p-0"
                         title="Generate PDF Report"
@@ -415,6 +429,12 @@ export default function OrdersPage() {
         onOpenChange={() => setDeletingOrder(null)}
         order={deletingOrder}
         onConfirm={handleDeleteOrder}
+      />
+
+      <IngredientsOnlyPDFDialog
+        open={!!ingredientOnlyOrder}
+        onOpenChange={() => setIngredientOnlyOrder(null)}
+        order={ingredientOnlyOrder}
       />
     </div>
   )

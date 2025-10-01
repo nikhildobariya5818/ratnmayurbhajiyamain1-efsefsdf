@@ -16,23 +16,23 @@ function sanitizeForFilename(text: string): string {
 }
 
 /**
- * Formats a date to YYYY-MM-DD format
+ * Formats a date to DD-MM-YYYY format
  */
 function formatDateForFilename(date: string | Date): string {
   const dateObj = typeof date === "string" ? new Date(date) : date
-  return dateObj.toISOString().split("T")[0]
+  const day = String(dateObj.getDate()).padStart(2, "0")
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0")
+  const year = dateObj.getFullYear()
+  return `${day}-${month}-${year}`
 }
 
 /**
  * Generates a PDF filename based on client name and order date
- * Format: ClientName_YYYY-MM-DD_order.pdf
+ * Format: ClientName_DD-MM-YYYY_order.pdf
  */
 export function generatePDFFilename(clientName: string, orderDate: string | Date): string {
   const sanitizedClientName = sanitizeForFilename(clientName)
   const formattedDate = formatDateForFilename(orderDate)
-
-  // If client name is empty or becomes empty after sanitization, use "Unknown_Client"
   const finalClientName = sanitizedClientName || "Unknown_Client"
-
   return `${finalClientName}_${formattedDate}_order.pdf`
 }
