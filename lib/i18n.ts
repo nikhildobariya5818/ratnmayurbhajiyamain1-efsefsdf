@@ -27,6 +27,7 @@ export interface Translations {
   delete: string
   save: string
   cancel: string
+  updateOrder: string
   close: string
   confirm: string
   search: string
@@ -703,6 +704,7 @@ export const translations: Record<Language, Translations> = {
     delete: "કાઢી નાખો",
     save: "સેવ કરો",
     cancel: "રદ કરો",
+    updateOrder: "અપડેટ કરો",
     close: "બંધ કરો",
     confirm: "પુષ્ટિ કરો",
     search: "શોધો",
