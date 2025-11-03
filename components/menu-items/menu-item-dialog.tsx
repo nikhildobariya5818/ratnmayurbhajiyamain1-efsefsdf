@@ -15,10 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Trash2, Scale, Beaker, Package, Users, User } from "lucide-react"
+import { Plus, Trash2, Scale, Beaker, Package } from "lucide-react"
 import type { MenuItem, Ingredient, MenuItemIngredient } from "@/lib/types"
 import { useLanguage } from "@/lib/language-context"
 
@@ -31,10 +31,10 @@ interface MenuItemDialogProps {
 }
 
 const menuItemTypes = [
-  { value: "only_dish", label: "Only bhajiya (KG)" },
-  { value: "only_dish_with_chart", label: "Dish with Only bhajiya" },
-  { value: "dish_without_chart", label: "Dish have no Chart" },
-  { value: "dish_with_chart", label: "Dish have Chart & Bhajiya" },
+  { value: "only_bhajiya_kg", label: "Only bhajiya (KG)" },
+  { value: "dish_with_only_bhajiya", label: "Dish with Only bhajiya" },
+  { value: "dish_have_no_chart", label: "Dish have no Chart" },
+  { value: "dish_have_chart_bhajiya", label: "Dish have Chart & Bhajiya" },
 ] as const
 
 const unitIcons = {
@@ -51,7 +51,7 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    type: "" as "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart" | "",
+    type: "" as "only_bhajiya_kg" | "dish_with_only_bhajiya" | "dish_have_no_chart" | "dish_have_chart_bhajiya" | "",
     ingredients: [] as MenuItemIngredient[],
   })
 
@@ -59,34 +59,14 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
 
   useEffect(() => {
     if (menuItem) {
-      const updatedIngredients = menuItem.ingredients.map((ing) => {
-        // If the ingredient already has dual values, use them
-        if (ing.singleItems && ing.multiItems) {
-          return ing
-        }
-        // Otherwise, migrate from legacy format
-        return {
-          ...ing,
-          singleItems: {
-            onlyDishQuantity: ing.onlyDishQuantity,
-            onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity,
-            dishWithoutChartQuantity: ing.dishWithoutChartQuantity,
-            dishWithChartQuantity: ing.dishWithChartQuantity,
-          },
-          multiItems: {
-            onlyDishQuantity: ing.onlyDishQuantity * 0.7, // Default to 70% for multi items
-            onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity * 0.7,
-            dishWithoutChartQuantity: ing.dishWithoutChartQuantity * 0.7,
-            dishWithChartQuantity: ing.dishWithChartQuantity * 0.7,
-          },
-        }
-      })
-
       setFormData({
         name: menuItem.name,
         category: menuItem.category,
-        type: menuItem.type,
-        ingredients: updatedIngredients,
+        type: menuItem.type as any,
+        ingredients: menuItem.ingredients.map((ing) => ({
+          ...ing,
+          isDefaultIngredient: ing.isDefaultIngredient || false,
+        })),
       })
     } else {
       setFormData({
@@ -122,6 +102,16 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
       if (!ing.ingredientId) {
         newErrors[`ingredient_${index}`] = "Ingredient is required"
       }
+      if (!ing.isDefaultIngredient) {
+        const hasQuantity =
+          ing.quantities.onlyBhajiyaKG > 0 ||
+          ing.quantities.dishWithOnlyBhajiya > 0 ||
+          ing.quantities.dishHaveNoChart > 0 ||
+          ing.quantities.dishHaveChartAndBhajiya > 0
+        if (!hasQuantity) {
+          newErrors[`quantity_${index}`] = "At least one quantity value is required for non-default ingredients"
+        }
+      }
     })
 
     setErrors(newErrors)
@@ -138,7 +128,11 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
     onSubmit({
       name: formData.name.trim(),
       category: formData.category.trim(),
-      type: formData.type as "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart",
+      type: formData.type as
+        | "only_bhajiya_kg"
+        | "dish_with_only_bhajiya"
+        | "dish_have_no_chart"
+        | "dish_have_chart_bhajiya",
       ingredients: formData.ingredients,
     })
   }
@@ -157,23 +151,13 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
         ...prev.ingredients,
         {
           ingredientId: "",
-          singleItems: {
-            onlyDishQuantity: 0,
-            onlyDishWithChartQuantity: 0,
-            dishWithoutChartQuantity: 0,
-            dishWithChartQuantity: 0,
+          isDefaultIngredient: false,
+          quantities: {
+            onlyBhajiyaKG: 0,
+            dishWithOnlyBhajiya: 0,
+            dishHaveNoChart: 0,
+            dishHaveChartAndBhajiya: 0,
           },
-          multiItems: {
-            onlyDishQuantity: 0,
-            onlyDishWithChartQuantity: 0,
-            dishWithoutChartQuantity: 0,
-            dishWithChartQuantity: 0,
-          },
-          // Legacy fields for backward compatibility
-          onlyDishQuantity: 0,
-          onlyDishWithChartQuantity: 0,
-          dishWithoutChartQuantity: 0,
-          dishWithChartQuantity: 0,
         },
       ],
     }))
@@ -184,37 +168,24 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
       ...prev,
       ingredients: prev.ingredients.filter((_, i) => i !== index),
     }))
-    // Clear related errors
     setErrors((prev) => {
       const newErrors = { ...prev }
       delete newErrors[`ingredient_${index}`]
+      delete newErrors[`quantity_${index}`]
       return newErrors
     })
   }
 
-  const updateIngredient = (index: number, field: keyof MenuItemIngredient, value: string | number | any) => {
+  const updateIngredient = (index: number, field: keyof MenuItemIngredient, value: any) => {
     setFormData((prev) => ({
       ...prev,
       ingredients: prev.ingredients.map((ing, i) => {
         if (i === index) {
-          const updated = { ...ing, [field]: value }
-
-          if (field === "singleItems" || field === "multiItems") {
-            // Use single items values as the primary legacy values
-            if (field === "singleItems") {
-              updated.onlyDishQuantity = value.onlyDishQuantity
-              updated.onlyDishWithChartQuantity = value.onlyDishWithChartQuantity
-              updated.dishWithoutChartQuantity = value.dishWithoutChartQuantity
-              updated.dishWithChartQuantity = value.dishWithChartQuantity
-            }
-          }
-
-          return updated
+          return { ...ing, [field]: value }
         }
         return ing
       }),
     }))
-    // Clear related errors
     if (field === "ingredientId") {
       setErrors((prev) => ({ ...prev, [`ingredient_${index}`]: "" }))
     }
@@ -222,36 +193,28 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
 
   const updateQuantityValue = (
     index: number,
-    valueType: "singleItems" | "multiItems",
-    quantityType:
-      | "onlyDishQuantity"
-      | "onlyDishWithChartQuantity"
-      | "dishWithoutChartQuantity"
-      | "dishWithChartQuantity",
+    quantityType: "onlyBhajiyaKG" | "dishWithOnlyBhajiya" | "dishHaveNoChart" | "dishHaveChartAndBhajiya",
     value: number,
   ) => {
     setFormData((prev) => ({
       ...prev,
       ingredients: prev.ingredients.map((ing, i) => {
         if (i === index) {
-          const updated = {
+          return {
             ...ing,
-            [valueType]: {
-              ...ing[valueType],
+            quantities: {
+              ...ing.quantities,
               [quantityType]: value,
             },
           }
-
-          // Update legacy fields when single items change
-          if (valueType === "singleItems") {
-            updated[quantityType] = value
-          }
-
-          return updated
         }
         return ing
       }),
     }))
+    // Clear quantity error when user updates a value
+    if (errors[`quantity_${index}`]) {
+      setErrors((prev) => ({ ...prev, [`quantity_${index}`]: "" }))
+    }
   }
 
   return (
@@ -315,7 +278,7 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
                 <div>
                   <Label className="text-lg font-semibold">Ingredients (per 100 people)</Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Configure different values for single item orders vs multi-item orders
+                    Default ingredients use fixed 12kg value. Non-default ingredients require quantity values.
                   </p>
                 </div>
                 <Button type="button" onClick={addIngredient} size="sm" className="bg-green-600 hover:bg-green-700">
@@ -344,7 +307,7 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
                       <Card key={index} className="border-2">
                         <CardContent className="p-4">
                           <div className="grid gap-4">
-                            {/* Ingredient Selection Row */}
+                            {/* Ingredient Selection and Default Flag Row */}
                             <div className="flex items-center gap-4">
                               <div className="flex-1">
                                 <Label className="text-sm font-medium mb-2 block">Ingredient</Label>
@@ -363,6 +326,9 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
                                           <div className="flex items-center gap-2">
                                             <IngIcon className="h-4 w-4" />
                                             <span>{ing.name}</span>
+                                            {ing.isDefault && (
+                                              <Badge className="ml-2 bg-blue-100 text-blue-800">Default</Badge>
+                                            )}
                                             <Badge variant="outline" className="ml-auto">
                                               {ing.unit}
                                             </Badge>
@@ -376,6 +342,20 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
                                   <p className="text-sm text-destructive mt-1">{errors[`ingredient_${index}`]}</p>
                                 )}
                               </div>
+
+                              <div className="flex items-center gap-2 mt-6">
+                                <Checkbox
+                                  id={`default_${index}`}
+                                  checked={ingredient.isDefaultIngredient}
+                                  onCheckedChange={(checked) =>
+                                    updateIngredient(index, "isDefaultIngredient", checked === true)
+                                  }
+                                />
+                                <Label htmlFor={`default_${index}`} className="font-medium cursor-pointer text-sm">
+                                  Default
+                                </Label>
+                              </div>
+
                               <Button
                                 type="button"
                                 onClick={() => removeIngredient(index)}
@@ -387,204 +367,109 @@ export function MenuItemDialog({ open, onOpenChange, menuItem, ingredients, onSu
                               </Button>
                             </div>
 
-                            <Tabs defaultValue="single" className="w-full">
-                              <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="single" className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
-                                  Single Item Orders
-                                </TabsTrigger>
-                                <TabsTrigger value="multi" className="flex items-center gap-2">
-                                  <Users className="h-4 w-4" />
-                                  Multi Item Orders
-                                </TabsTrigger>
-                              </TabsList>
+                            {!ingredient.isDefaultIngredient && (
+                              <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <Label className="text-sm font-semibold mb-4 block">Quantities (per 100 people)</Label>
+                                <div className="grid grid-cols-4 gap-3">
+                                  <div className="text-center">
+                                    <Label className="text-xs font-medium text-blue-600 mb-2 block">
+                                      Only Bhajiya (KG)
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={ingredient.quantities?.onlyBhajiyaKG || 0}
+                                      onChange={(e) =>
+                                        updateQuantityValue(
+                                          index,
+                                          "onlyBhajiyaKG",
+                                          Number.parseFloat(e.target.value) || 0,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      className="text-center"
+                                    />
+                                  </div>
+                                  <div className="text-center">
+                                    <Label className="text-xs font-medium text-green-600 mb-2 block">
+                                      Dish w/ Only Bhajiya
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={ingredient.quantities?.dishWithOnlyBhajiya || 0}
+                                      onChange={(e) =>
+                                        updateQuantityValue(
+                                          index,
+                                          "dishWithOnlyBhajiya",
+                                          Number.parseFloat(e.target.value) || 0,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      className="text-center"
+                                    />
+                                  </div>
+                                  <div className="text-center">
+                                    <Label className="text-xs font-medium text-orange-600 mb-2 block">
+                                      Dish No Chart
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={ingredient.quantities?.dishHaveNoChart || 0}
+                                      onChange={(e) =>
+                                        updateQuantityValue(
+                                          index,
+                                          "dishHaveNoChart",
+                                          Number.parseFloat(e.target.value) || 0,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      className="text-center"
+                                    />
+                                  </div>
+                                  <div className="text-center">
+                                    <Label className="text-xs font-medium text-purple-600 mb-2 block">
+                                      Dish w/ Chart & Bhajiya
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      value={ingredient.quantities?.dishHaveChartAndBhajiya || 0}
+                                      onChange={(e) =>
+                                        updateQuantityValue(
+                                          index,
+                                          "dishHaveChartAndBhajiya",
+                                          Number.parseFloat(e.target.value) || 0,
+                                        )
+                                      }
+                                      placeholder="0"
+                                      className="text-center"
+                                    />
+                                  </div>
+                                </div>
+                                {errors[`quantity_${index}`] && (
+                                  <p className="text-sm text-destructive mt-2">{errors[`quantity_${index}`]}</p>
+                                )}
+                              </div>
+                            )}
 
-                              <TabsContent value="single" className="mt-4">
-                                <div className="bg-blue-50 p-3 rounded-lg mb-4">
-                                  <p className="text-sm text-blue-800">
-                                    <strong>Single Item Values:</strong> Used when an order contains only one menu item
-                                    that uses this ingredient
+                            {ingredient.isDefaultIngredient && selectedIngredient && (
+                              <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                                <CardContent className="p-3">
+                                  <p className="text-sm text-green-800 dark:text-green-200">
+                                    <Badge className="bg-green-600 text-white mr-2">Default Ingredient</Badge>
+                                    This ingredient will use the fixed default value of{" "}
+                                    <span className="font-semibold">{selectedIngredient.defaultValue} kg</span> when
+                                    added to orders.
                                   </p>
-                                </div>
-                                <div className="grid grid-cols-4 gap-4">
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-blue-600 mb-2 block">{t.onlyDish}</Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.singleItems?.onlyDishQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "singleItems",
-                                          "onlyDishQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-green-600 mb-2 block">
-                                      {t.onlyDishWithChart}
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.singleItems?.onlyDishWithChartQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "singleItems",
-                                          "onlyDishWithChartQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-orange-600 mb-2 block">
-                                      {t.dishWithoutChart}
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.singleItems?.dishWithoutChartQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "singleItems",
-                                          "dishWithoutChartQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-purple-600 mb-2 block">
-                                      {t.dishWithChart}
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.singleItems?.dishWithChartQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "singleItems",
-                                          "dishWithChartQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="multi" className="mt-4">
-                                <div className="bg-orange-50 p-3 rounded-lg mb-4">
-                                  <p className="text-sm text-orange-800">
-                                    <strong>Multi Item Values:</strong> Used when an order contains multiple menu items
-                                    that use this ingredient
-                                  </p>
-                                </div>
-                                <div className="grid grid-cols-4 gap-4">
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-blue-600 mb-2 block">{t.onlyDish}</Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.multiItems?.onlyDishQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "multiItems",
-                                          "onlyDishQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-green-600 mb-2 block">
-                                      {t.onlyDishWithChart}
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.multiItems?.onlyDishWithChartQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "multiItems",
-                                          "onlyDishWithChartQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-orange-600 mb-2 block">
-                                      {t.dishWithoutChart}
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.multiItems?.dishWithoutChartQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "multiItems",
-                                          "dishWithoutChartQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                  <div className="text-center">
-                                    <Label className="text-sm font-medium text-purple-600 mb-2 block">
-                                      {t.dishWithChart}
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      min="0"
-                                      value={ingredient.multiItems?.dishWithChartQuantity || 0}
-                                      onChange={(e) =>
-                                        updateQuantityValue(
-                                          index,
-                                          "multiItems",
-                                          "dishWithChartQuantity",
-                                          Number.parseFloat(e.target.value) || 0,
-                                        )
-                                      }
-                                      placeholder="0"
-                                      className="text-center"
-                                    />
-                                  </div>
-                                </div>
-                              </TabsContent>
-                            </Tabs>
+                                </CardContent>
+                              </Card>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

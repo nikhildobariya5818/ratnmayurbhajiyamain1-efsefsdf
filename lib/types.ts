@@ -15,38 +15,30 @@ export interface Ingredient {
   _id?: string
   name: string
   unit: "gram" | "kg" | "ml" | "L" | "piece" | "જબલા"
+  isDefault: boolean
+  defaultValue?: number // Default value is 12 kg for default ingredients
   createdAt: Date
   updatedAt: Date
 }
 
 export interface MenuItemIngredient {
   ingredientId: string
-  ingredient?: Ingredient // Populated field
+  ingredient?: Ingredient
+  isDefaultIngredient: boolean // Whether this is a default ingredient for this menu item
   // Quantities for different menu item types (per 100 people)
-  singleItems: {
-    onlyDishQuantity: number
-    onlyDishWithChartQuantity: number
-    dishWithoutChartQuantity: number
-    dishWithChartQuantity: number
+  quantities: {
+    onlyBhajiyaKG: number // Only bhajiya (KG)
+    dishWithOnlyBhajiya: number // Dish with Only bhajiya
+    dishHaveNoChart: number // Dish have no Chart
+    dishHaveChartAndBhajiya: number // Dish have Chart & Bhajiya
   }
-  multiItems: {
-    onlyDishQuantity: number
-    onlyDishWithChartQuantity: number
-    dishWithoutChartQuantity: number
-    dishWithChartQuantity: number
-  }
-  // Legacy fields for backward compatibility - will be removed later
-  onlyDishQuantity: number
-  onlyDishWithChartQuantity: number
-  dishWithoutChartQuantity: number
-  dishWithChartQuantity: number
 }
 
 export interface MenuItem {
   _id?: string
   name: string
   category: string
-  type: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart"
+  type: "only_bhajiya_kg" | "dish_with_only_bhajiya" | "dish_have_no_chart" | "dish_have_chart_bhajiya"
   ingredients: MenuItemIngredient[]
   createdAt: Date
   updatedAt: Date
@@ -54,50 +46,38 @@ export interface MenuItem {
 
 export interface OrderMenuItem {
   menuItemId: string
-  menuItem?: MenuItem // Populated field
-  selectedType: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart"
-  // Snapshot of menu item at order time
+  menuItem?: MenuItem
   name: string
   category: string
   type: string
+  // Snapshot of ingredients at order time
   ingredients: {
     ingredientId: string
     ingredientName: string
     unit: string
-    singleItems?: {
-      onlyDishQuantity: number
-      onlyDishWithChartQuantity: number
-      dishWithoutChartQuantity: number
-      dishWithChartQuantity: number
-    }
-    multiItems?: {
-      onlyDishQuantity: number
-      onlyDishWithChartQuantity: number
-      dishWithoutChartQuantity: number
-      dishWithChartQuantity: number
-    }
-    quantityPer100: number // Legacy field for backward compatibility
+    isDefaultIngredient: boolean
+    quantityPer100: number // Quantity for 100 people
   }[]
 }
 
 export interface Order {
   _id?: string
   clientId?: string
-  client?: Client // Populated field
-  // Client snapshot for new clients
+  client?: Client
   clientSnapshot?: {
     name: string
     phone: string
     address: string
     reference?: string
   }
+  orderNumber: string
   numberOfPeople: number
   address: string
   orderType: string
   orderDate: Date
   orderTime: string
   menuItems: OrderMenuItem[]
-  // Additional admin fields for PDF
+  // Admin fields for delivery
   vehicleOwnerName?: string
   phoneNumber?: string
   vehicleNumberPlaceholder?: string
@@ -108,6 +88,18 @@ export interface Order {
   notes?: string
   createdAt: Date
   updatedAt: Date
+}
+
+// Summary for orders showing final ingredient quantities
+export interface OrderSummary {
+  orderDetails: Order
+  ingredientSummary: {
+    ingredientId: string
+    ingredientName: string
+    unit: string
+    totalQuantity: number
+    isDefault: boolean
+  }[]
 }
 
 // API Response Types
@@ -129,35 +121,28 @@ export interface ClientFormData {
 export interface IngredientFormData {
   name: string
   unit: "gram" | "kg" | "ml" | "L" | "piece" | "જબલા"
+  isDefault: boolean
+  defaultValue?: number
 }
 
 export interface MenuItemFormData {
   name: string
   category: string
-  type: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart"
+  type: "only_bhajiya_kg" | "dish_with_only_bhajiya" | "dish_have_no_chart" | "dish_have_chart_bhajiya"
   ingredients: {
     ingredientId: string
-    singleItems: {
-      onlyDishQuantity: number
-      onlyDishWithChartQuantity: number
-      dishWithoutChartQuantity: number
-      dishWithChartQuantity: number
+    isDefaultIngredient: boolean
+    quantities: {
+      onlyBhajiyaKG: number
+      dishWithOnlyBhajiya: number
+      dishHaveNoChart: number
+      dishHaveChartAndBhajiya: number
     }
-    multiItems: {
-      onlyDishQuantity: number
-      onlyDishWithChartQuantity: number
-      dishWithoutChartQuantity: number
-      dishWithChartQuantity: number
-    }
-    // Legacy fields for backward compatibility
-    onlyDishQuantity: number
-    onlyDishWithChartQuantity: number
-    dishWithoutChartQuantity: number
-    dishWithChartQuantity: number
   }[]
 }
 
 export interface OrderFormData {
+  orderNumber: string
   clientId?: string
   clientSnapshot?: {
     name: string
@@ -172,7 +157,6 @@ export interface OrderFormData {
   orderTime: string
   menuItems: {
     menuItemId: string
-    selectedType: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart"
   }[]
   vehicleOwnerName?: string
   phoneNumber?: string
@@ -182,12 +166,4 @@ export interface OrderFormData {
   chefPhoneNumber?: string
   addHelper?: string
   notes?: string
-}
-
-// Additional types for scaling ingredients
-export interface ScaledIngredient {
-  ingredientId: string
-  ingredientName: string
-  unit: string
-  totalQuantity: number
 }

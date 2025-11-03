@@ -26,12 +26,23 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
 // Ingredient scaling utility
 export function scaleIngredients(
   menuItems: Array<{
-    selectedType: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart"
+    menuItemId: string
+    name: string
+    category: string
+    type: string
+    selectedType?: string
     ingredients: Array<{
       ingredientId: string
       ingredientName: string
       unit: string
-      quantityPer100: number // This will be the quantity for the selected type
+      quantityPer100?: number
+      isDefaultIngredient?: boolean
+      quantities?: {
+        onlyBhajiyaKG: number
+        dishWithOnlyBhajiya: number
+        dishHaveNoChart: number
+        dishHaveChartAndBhajiya: number
+      }
     }>
   }>,
   numberOfPeople: number,
@@ -40,6 +51,7 @@ export function scaleIngredients(
   ingredientName: string
   unit: string
   totalQuantity: number
+  isDefault?: boolean
 }> {
   const scaledIngredients = new Map<
     string,
@@ -48,14 +60,17 @@ export function scaleIngredients(
       ingredientName: string
       unit: string
       totalQuantity: number
+      isDefault?: boolean
     }
   >()
 
   const scalingFactor = numberOfPeople / 100
 
   menuItems.forEach((menuItem) => {
-    menuItem.ingredients.forEach((ingredient) => {
-      const scaledQuantity = ingredient.quantityPer100 * scalingFactor
+    menuItem.ingredients?.forEach((ingredient) => {
+      const quantityPer100 = ingredient.quantityPer100 || 0
+
+      const scaledQuantity = quantityPer100 * scalingFactor
 
       // Round based on unit type
       const roundedQuantity = ["piece"].includes(ingredient.unit)
@@ -76,12 +91,19 @@ export function scaleIngredients(
           ingredientName: ingredient.ingredientName,
           unit: ingredient.unit,
           totalQuantity: roundedQuantity,
+          isDefault: ingredient.isDefaultIngredient,
         })
       }
     })
   })
 
-  return Array.from(scaledIngredients.values())
+  return Array.from(scaledIngredients.values()).sort((a, b) => {
+    // Sort default ingredients first
+    if (a.isDefault !== b.isDefault) {
+      return a.isDefault ? -1 : 1
+    }
+    return a.ingredientName.localeCompare(b.ingredientName)
+  })
 }
 
 export function scaleIngredientsWithDualValues(
@@ -263,4 +285,39 @@ export function getQuantityForTypeFromDualValues(
     return 0
   }
   return getQuantityForType(values, type)
+}
+
+export function getQuantityForNewTypes(
+  quantities:
+    | {
+        onlyBhajiyaKG: number
+        dishWithOnlyBhajiya: number
+        dishHaveNoChart: number
+        dishHaveChartAndBhajiya: number
+      }
+    | undefined,
+  type: "only_bhajiya_kg" | "dish_with_only_bhajiya" | "dish_have_no_chart" | "dish_have_chart_bhajiya",
+  isDefaultIngredient?: boolean,
+  defaultValue?: number,
+): number {
+  if (isDefaultIngredient && defaultValue) {
+    return defaultValue
+  }
+
+  if (!quantities) {
+    return 0
+  }
+
+  switch (type) {
+    case "only_bhajiya_kg":
+      return quantities.onlyBhajiyaKG ?? 0
+    case "dish_with_only_bhajiya":
+      return quantities.dishWithOnlyBhajiya ?? 0
+    case "dish_have_no_chart":
+      return quantities.dishHaveNoChart ?? 0
+    case "dish_have_chart_bhajiya":
+      return quantities.dishHaveChartAndBhajiya ?? 0
+    default:
+      return quantities.onlyBhajiyaKG ?? 0
+  }
 }

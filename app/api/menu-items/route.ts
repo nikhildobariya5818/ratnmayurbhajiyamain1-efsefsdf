@@ -68,13 +68,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate type
-    const validTypes = ["only_dish", "only_dish_with_chart", "dish_without_chart", "dish_with_chart"]
+    const validTypes = ["only_bhajiya_kg", "dish_with_only_bhajiya", "dish_have_no_chart", "dish_have_chart_bhajiya"]
     if (!validTypes.includes(body.type)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid type. Must be one of: only_dish, only_dish_with_chart, dish_without_chart, dish_with_chart",
+          error:
+            "Invalid type. Must be one of: only_bhajiya_kg, dish_with_only_bhajiya, dish_have_no_chart, dish_have_chart_bhajiya",
         },
         { status: 400 },
       )
@@ -115,19 +115,23 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Validate quantities
-      const requiredQuantities = [
-        "onlyDishQuantity",
-        "onlyDishWithChartQuantity",
-        "dishWithoutChartQuantity",
-        "dishWithChartQuantity",
-      ]
+      if (!ingredient.quantities || typeof ingredient.quantities !== "object") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Each ingredient must have a quantities object",
+          },
+          { status: 400 },
+        )
+      }
+
+      const requiredQuantities = ["onlyBhajiyaKG", "dishWithOnlyBhajiya", "dishHaveNoChart", "dishHaveChartAndBhajiya"]
       for (const qty of requiredQuantities) {
-        if (typeof ingredient[qty] !== "number" || ingredient[qty] < 0) {
+        if (typeof ingredient.quantities[qty] !== "number" || ingredient.quantities[qty] < 0) {
           return NextResponse.json(
             {
               success: false,
-              error: `${qty} must be a non-negative number`,
+              error: `quantities.${qty} must be a non-negative number`,
             },
             { status: 400 },
           )
@@ -139,7 +143,11 @@ export async function POST(request: NextRequest) {
       name: body.name.trim(),
       category: body.category.trim(),
       type: body.type,
-      ingredients: body.ingredients,
+      ingredients: body.ingredients.map((ing: any) => ({
+        ingredientId: ing.ingredientId,
+        isDefaultIngredient: ing.isDefaultIngredient || false,
+        quantities: ing.quantities,
+      })),
     }
 
     const menuItem = await MenuItemModel.create(menuItemData)

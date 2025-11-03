@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Scale, Beaker, Package } from "lucide-react"
 import type { Ingredient } from "@/lib/types"
 import { useLanguage } from "@/lib/language-context"
@@ -40,6 +41,8 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
   const [formData, setFormData] = useState({
     name: "",
     unit: "" as "gram" | "kg" | "ml" | "L" | "piece" | "જબલા" | "",
+    isDefault: false,
+    defaultValue: 12,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -49,11 +52,15 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
       setFormData({
         name: ingredient.name,
         unit: ingredient.unit,
+        isDefault: ingredient.isDefault || false,
+        defaultValue: ingredient.defaultValue || 12,
       })
     } else {
       setFormData({
         name: "",
         unit: "",
+        isDefault: false,
+        defaultValue: 12,
       })
     }
     setErrors({})
@@ -72,6 +79,10 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
       newErrors.unit = "Unit is required"
     }
 
+    if (formData.isDefault && (!formData.defaultValue || formData.defaultValue <= 0)) {
+      newErrors.defaultValue = "Default value must be greater than 0"
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -86,10 +97,12 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
     onSubmit({
       name: formData.name.trim(),
       unit: formData.unit as "gram" | "kg" | "ml" | "L" | "piece" | "જબલા",
+      isDefault: formData.isDefault,
+      defaultValue: formData.isDefault ? formData.defaultValue : undefined,
     })
   }
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
@@ -143,6 +156,38 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
                 </SelectContent>
               </Select>
               {errors.unit && <p className="text-sm text-destructive">{errors.unit}</p>}
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-3 mb-4">
+                <Checkbox
+                  id="isDefault"
+                  checked={formData.isDefault}
+                  onCheckedChange={(checked) => handleInputChange("isDefault", checked === true)}
+                />
+                <Label htmlFor="isDefault" className="font-medium cursor-pointer">
+                  Mark as Default Ingredient
+                </Label>
+              </div>
+
+              {formData.isDefault && (
+                <div className="grid gap-2 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <Label htmlFor="defaultValue">Default Quantity (per order)</Label>
+                  <Input
+                    id="defaultValue"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={formData.defaultValue}
+                    onChange={(e) => handleInputChange("defaultValue", Number.parseFloat(e.target.value) || 0)}
+                    className={errors.defaultValue ? "border-destructive" : ""}
+                  />
+                  {errors.defaultValue && <p className="text-sm text-destructive">{errors.defaultValue}</p>}
+                  <p className="text-xs text-muted-foreground">
+                    This value will be added when 3+ menu items share this ingredient
+                  </p>
+                </div>
+              )}
             </div>
 
             {formData.unit && (

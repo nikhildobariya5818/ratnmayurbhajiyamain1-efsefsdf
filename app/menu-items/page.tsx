@@ -15,17 +15,17 @@ import { fetchIngredients } from "@/lib/api/ingredients"
 import { useLanguage } from "@/lib/language-context"
 
 const typeColors = {
-  only_dish: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  only_dish_with_chart: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  dish_without_chart: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-  dish_with_chart: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  only_bhajiya_kg: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  dish_with_only_bhajiya: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  dish_have_no_chart: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+  dish_have_chart_bhajiya: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
 }
 
 const typeLabels = {
-  only_dish: "onlyBhajiyaKG",
-  only_dish_with_chart: "dishWithOnlyBhajiya",
-  dish_without_chart: "dishHaveNoChart",
-  dish_with_chart: "dishHaveChartAndBhajiya",
+  only_bhajiya_kg: "onlyBhajiyaKG",
+  dish_with_only_bhajiya: "dishWithOnlyBhajiya",
+  dish_have_no_chart: "dishHaveNoChart",
+  dish_have_chart_bhajiya: "dishHaveChartAndBhajiya",
 }
 
 export default function MenuItemsPage() {
@@ -50,10 +50,7 @@ export default function MenuItemsPage() {
     try {
       setLoading(true)
       setError(null)
-      const [menuItemsData, ingredientsData] = await Promise.all([
-        fetchMenuItems("", "", "", true), // populate ingredients
-        fetchIngredients(),
-      ])
+      const [menuItemsData, ingredientsData] = await Promise.all([fetchMenuItems("", "", "", true), fetchIngredients()])
       setMenuItems(menuItemsData)
       setIngredients(ingredientsData)
     } catch (err) {
@@ -63,7 +60,6 @@ export default function MenuItemsPage() {
     }
   }
 
-  // Populate ingredient details for display
   const menuItemsWithIngredients = menuItems.map((item) => ({
     ...item,
     ingredients: item.ingredients.map((ing) => ({
@@ -172,7 +168,6 @@ export default function MenuItemsPage() {
           </Card>
         )}
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-balance">{t.menuItemManagement}</h1>
@@ -184,7 +179,6 @@ export default function MenuItemsPage() {
           </Button>
         </div>
 
-        {/* Search and Filters */}
         <div className="flex flex-col gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -239,7 +233,6 @@ export default function MenuItemsPage() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -287,7 +280,6 @@ export default function MenuItemsPage() {
           </Card>
         </div>
 
-        {/* Menu Items List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMenuItems.map((item) => (
             <Card key={item._id} className="hover:shadow-lg transition-shadow">
@@ -296,11 +288,16 @@ export default function MenuItemsPage() {
                   <div className="flex-1">
                     <CardTitle className="text-lg line-clamp-2">{item.name}</CardTitle>
                     <CardDescription className="mt-1">{item.category}</CardDescription>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge className={typeColors[item.type]} variant="secondary">
-                        {t[typeLabels[item.type] as keyof typeof t]}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <Badge className={typeColors[item.type as keyof typeof typeColors]} variant="secondary">
+                        {t[typeLabels[item.type as keyof typeof typeLabels] as keyof typeof t]}
                       </Badge>
                       <Badge variant="outline">{item.ingredients.length} ingredients</Badge>
+                      {item.ingredients.some((ing) => ing.isDefaultIngredient) && (
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                          Has Defaults
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -342,6 +339,7 @@ export default function MenuItemsPage() {
                       {item.ingredients.slice(0, 3).map((ing) => (
                         <Badge key={ing.ingredientId} variant="outline" className="text-xs">
                           {ing.ingredient?.name}
+                          {ing.isDefaultIngredient && <span className="ml-1">*</span>}
                         </Badge>
                       ))}
                       {item.ingredients.length > 3 && (
@@ -381,7 +379,6 @@ export default function MenuItemsPage() {
         )}
       </div>
 
-      {/* Dialogs */}
       <MenuItemDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}

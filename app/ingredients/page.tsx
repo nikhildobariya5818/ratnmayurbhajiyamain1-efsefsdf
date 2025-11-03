@@ -251,11 +251,19 @@ export default function IngredientsPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg line-clamp-2">{ingredient.name}</CardTitle>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <Icon className="h-4 w-4 text-muted-foreground" />
                         <Badge className={unitColors[ingredient.unit]} variant="secondary">
                           {ingredient.unit}
                         </Badge>
+                        {ingredient.isDefault && (
+                          <Badge
+                            className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                            variant="secondary"
+                          >
+                            Default: {ingredient.defaultValue} {ingredient.unit}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-1">

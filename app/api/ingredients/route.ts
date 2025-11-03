@@ -62,9 +62,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (body.isDefault && typeof body.defaultValue !== "number") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "If isDefault is true, defaultValue must be provided (default is 12)",
+        },
+        { status: 400 },
+      )
+    }
+
     const ingredientData: Omit<Ingredient, "_id" | "createdAt" | "updatedAt"> = {
       name: body.name.trim(),
       unit: body.unit,
+      isDefault: body.isDefault || false,
+      defaultValue: body.isDefault ? body.defaultValue || 12 : undefined,
     }
 
     const ingredient = await IngredientModel.create(ingredientData)
