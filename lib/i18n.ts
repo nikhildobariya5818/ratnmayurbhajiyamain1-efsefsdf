@@ -224,6 +224,9 @@ export interface Translations {
   dishWithOnlyBhajiya: string
   dishHaveNoChart: string
   dishHaveChartAndBhajiya: string
+
+  // Units formatting translations
+  and: string
 }
 
 export const translations: Record<Language, Translations> = {
@@ -450,6 +453,11 @@ export const translations: Record<Language, Translations> = {
     dishWithOnlyBhajiya: "Dish with Only bhajiya",
     dishHaveNoChart: "Dish have no Chart",
     dishHaveChartAndBhajiya: "Dish have Chart & Bhajiya",
+
+    // Units formatting translations
+    and: "and",
+    gram: "gm",
+    kilogram: "kg",
   },
 
   hi: {
@@ -594,7 +602,7 @@ export const translations: Record<Language, Translations> = {
     downloaded: "डाउनलोड किया गया",
     thisMonth: "इस महीने",
     noReportsFound: "कोई रिपोर्ट नहीं मिली",
-    getStartedGenerateReport: "अपनी पहली रिपोर्ट जेनरेट करके शुरुआत करें",
+    getStartedGenerateReport: "अपनी पहली रिपोર्ट जेनरेट करके शुरुआत करें",
     preview: "पूर्वावलोकन",
     downloadPDF: "पीडीएफ डाउनलोड करें",
     generated: "जेनरेट किया गया",
@@ -629,7 +637,7 @@ export const translations: Record<Language, Translations> = {
     inactive: "निष्क्रिय",
     pending: "लंबित",
     completed: "पूर्ण",
-    cancelled: "रद्द",
+    cancelled: "રद्द",
     confirmed: "पुष्ट",
 
     // Validation Messages
@@ -650,10 +658,10 @@ export const translations: Record<Language, Translations> = {
     ingredientDeleted: "सामग्री सफलतापूर्वक हटाई गई",
     menuItemCreated: "मेनू आइटम सफलतापूर्वक बनाया गया",
     menuItemUpdated: "मेनू आइटम सफलतापूर्वक अपडेट किया गया",
-    menuItemDeleted: "मेनू आइटम सफलतापूर्वक हटाया गया",
+    menuItemDeleted: "मेनू आइटम सफलतापूર्वक हटाया गया",
     orderCreated: "ऑर्डर सफलतापूर्वक बनाया गया",
-    orderUpdated: "ऑर्डर सफलतापूर्वक अपडेट किया गया",
-    orderDeleted: "ऑર्डर सफलतापूर्वक हटाया गया",
+    orderUpdated: "ऑર्डर सफलतापूर्वक अपडेट किया गया",
+    orderDeleted: "ऑર्डर सफलतापूર्वक हटाया गया",
     reportGenerated: "रिपोर्ट सफलतापूर्वक जेनरेट की गई",
 
     // Error Messages
@@ -675,6 +683,11 @@ export const translations: Record<Language, Translations> = {
     dishWithOnlyBhajiya: "केवल भजिया वाला व्यंजन",
     dishHaveNoChart: "डिश में चार्ट नहीं है",
     dishHaveChartAndBhajiya: "इस डिश में चार्ट और भजिया भी है",
+
+    // Units formatting translations
+    and: "और",
+    gram: "ग्राम",
+    kilogram: "किलोग्राम",
   },
 
   gu: {
@@ -901,6 +914,11 @@ export const translations: Record<Language, Translations> = {
     dishWithOnlyBhajiya: "ફક્ત ભજીયા સાથેની વાનગી",
     dishHaveNoChart: "ડીશમાં ચાર્ટ નથી",
     dishHaveChartAndBhajiya: "વાનગીમાં ચાર્ટ અને ભજીયા છે",
+
+    // Units formatting translations
+    and: "અને",
+    gram: "ગ્રામ",
+    kilogram: "કિલોગ્રામ",
   },
 }
 

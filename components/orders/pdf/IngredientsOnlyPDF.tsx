@@ -1,8 +1,9 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
 import type { Order } from "@/lib/types"
-import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
+import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import "./pdfStyles"
 import { detectTextScript } from "@/lib/language-detection"
+import { formatQuantityWithUnit } from "@/lib/format-quantity"
 
 const styles = StyleSheet.create({
   page: {
@@ -62,13 +63,15 @@ function getScriptStyle(text: string) {
 }
 
 export function IngredientsOnlyPDF({ order }: { order: Order }) {
-  const hasDualValues = order.menuItems.some((item) =>
-    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  const scaledIngredients = scaleIngredientsWithMenuItems(
+    order.menuItems.map((item) => ({
+      menuItemId: item._id,
+      name: item.name,
+      selectedType: item.selectedType || item.type,
+      ingredients: item.ingredients,
+    })),
+    order.numberOfPeople,
   )
-
-  const items = hasDualValues
-    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
-    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   return (
     <Document>
@@ -84,11 +87,11 @@ export function IngredientsOnlyPDF({ order }: { order: Order }) {
           <Text style={styles.colUnit}>Unit</Text>
         </View>
 
-        {items.map((ing, idx) => (
+        {scaledIngredients.map((ing, idx) => (
           <View key={`${ing.ingredientId}-${idx}`} style={styles.row}>
             <Text style={[styles.colName, getScriptStyle(ing.ingredientName)]}>{ing.ingredientName}</Text>
-            <Text style={styles.colQty}>{ing.totalQuantity}</Text>
-            <Text style={styles.colUnit}>{ing.unit}</Text>
+            <Text style={styles.colQty}>{formatQuantityWithUnit(ing.totalQuantity).value}</Text>
+            <Text style={styles.colUnit}>{formatQuantityWithUnit(ing.totalQuantity).unit}</Text>
           </View>
         ))}
       </Page>

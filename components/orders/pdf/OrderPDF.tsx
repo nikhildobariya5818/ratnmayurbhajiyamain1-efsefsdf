@@ -1,10 +1,9 @@
 import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer"
 import type { Order } from "@/lib/types"
-import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
+import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import { StaticGujaratiPage } from "./StaticGujaratiPage"
 import { detectTextScript } from "@/lib/language-detection"
-
-// Font registrations are now handled in pdfStyles.tsx
+import { formatQuantityWithUnit } from "@/lib/format-quantity"
 
 const styles = StyleSheet.create({
   page: {
@@ -284,31 +283,33 @@ function needsMultilingualFont(text: string): boolean {
 export function OrderPDF({ order }: { order: Order }) {
   const client = order.client || order.clientSnapshot
 
-  const hasDualValues = order.menuItems.some((item) =>
-    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  const scaledIngredients = scaleIngredientsWithMenuItems(
+    order.menuItems.map((item) => ({
+      menuItemId: item._id,
+      name: item.name,
+      selectedType: item.selectedType || item.type,
+      ingredients: item.ingredients,
+    })),
+    order.numberOfPeople,
   )
-
-  const scaledIngredients = hasDualValues
-    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
-    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const ingredientData =
     scaledIngredients && scaledIngredients.length > 0
       ? scaledIngredients.map((ing) => ({
-        name: ing.ingredientName,
-        quantity: ing.totalQuantity,
-        unit: ing.unit,
-      }))
+          name: ing.ingredientName,
+          quantity: formatQuantityWithUnit(ing.totalQuantity).value,
+          unit: "",
+        }))
       : [
-        { name: "કંદાના (Sweet Potato)", quantity: 15, unit: "kg" },
-        { name: "આદુ", quantity: 2.5, unit: "kg" },
-        { name: "મરચા", quantity: 2.5, unit: "kg" },
-        { name: "લસણ", quantity: 1.25, unit: "kg" },
-        { name: "મેથી", quantity: 2.5, unit: "kg" },
-        { name: "મરચી", quantity: 0.63, unit: "kg" },
-        { name: "ભજીયા નો લોટ", quantity: 7.5, unit: "kg" },
-        { name: "ટમેટા પૂરી (Sweet Tomato Puri)", quantity: 17.5, unit: "kg" },
-      ]
+          { name: "કંદાના (Sweet Potato)", quantity: "15 kg", unit: "" },
+          { name: "આદુ", quantity: "2 kg and 500 gm", unit: "" },
+          { name: "મરચા", quantity: "2 kg and 500 gm", unit: "" },
+          { name: "લસણ", quantity: "1 kg and 250 gm", unit: "" },
+          { name: "મેથી", quantity: "2 kg and 500 gm", unit: "" },
+          { name: "મરચી", quantity: "630 gm", unit: "" },
+          { name: "ભજીયા નો લોટ", quantity: "7 kg and 500 gm", unit: "" },
+          { name: "ટમેટા પૂરી (Sweet Tomato Puri)", quantity: "17 kg and 500 gm", unit: "" },
+        ]
 
   console.log("Scaled Ingredients:", scaledIngredients) // Added debug logging
 
@@ -319,7 +320,6 @@ export function OrderPDF({ order }: { order: Order }) {
     const year = date.getFullYear()
     return `${day}/${month}/${year}`
   }
-
 
   return (
     <Document>
@@ -354,9 +354,7 @@ export function OrderPDF({ order }: { order: Order }) {
             <View style={styles.columnItem}>
               <Text style={styles.formLabel}>તારીખ :</Text>
               <View style={styles.formUnderline}>
-                <Text style={styles.formValue}>
-                  {formatDateDDMMYYYY(order.orderDate)}
-                </Text>
+                <Text style={styles.formValue}>{formatDateDDMMYYYY(order.orderDate)}</Text>
               </View>
             </View>
           </View>
@@ -506,9 +504,7 @@ export function OrderPDF({ order }: { order: Order }) {
                 <View key={index} style={styles.formRow}>
                   <Text style={styles.formLabel}>{ingredient.name}</Text>
                   <View style={styles.formUnderline}>
-                    <Text style={styles.formValue}>
-                      {ingredient.quantity} {ingredient.unit}
-                    </Text>
+                    <Text style={styles.formValue}>{ingredient.quantity}</Text>
                   </View>
                 </View>
               ))}
@@ -518,9 +514,7 @@ export function OrderPDF({ order }: { order: Order }) {
                 <View key={index} style={styles.formRow}>
                   <Text style={styles.formLabel}>{ingredient.name}</Text>
                   <View style={styles.formUnderline}>
-                    <Text style={styles.formValue}>
-                      {ingredient.quantity} {ingredient.unit}
-                    </Text>
+                    <Text style={styles.formValue}>{ingredient.quantity}</Text>
                   </View>
                 </View>
               ))}

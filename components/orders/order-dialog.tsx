@@ -22,26 +22,20 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Order, OrderMenuItem } from "@/lib/types"
-import { scaleIngredientsWithDualValues } from "@/lib/database"
+import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import { createClient } from "@/lib/api/clients"
 import { FileText } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
+import { formatQuantityI18n } from "@/lib/format-quantity"
 
 const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredients, onSubmit }: OrderDialogProps) => {
   const { t } = useLanguage()
 
   const orderTypes = [
-    { value: "only_dish", label: t.onlyBhajiyaKG },
-    { value: "only_dish_with_chart", label: t.dishWithOnlyBhajiya },
-    { value: "dish_without_chart", label: t.dishHaveNoChart },
-    { value: "dish_with_chart", label: t.dishHaveChartAndBhajiya },
-  ] as const
-
-  const menuItemTypes = [
-    { value: "only_dish", label: t.onlyBhajiyaKG },
-    { value: "only_dish_with_chart", label: t.dishWithOnlyBhajiya },
-    { value: "dish_without_chart", label: t.dishHaveNoChart },
-    { value: "dish_with_chart", label: t.dishHaveChartAndBhajiya },
+    { value: "only_bhajiya_kg", label: t.onlyBhajiyaKG },
+    { value: "dish_with_only_bhajiya", label: t.dishWithOnlyBhajiya },
+    { value: "dish_have_no_chart", label: t.dishHaveNoChart },
+    { value: "dish_have_chart_bhajiya", label: t.dishHaveChartAndBhajiya },
   ] as const
 
   const [formData, setFormData] = useState({
@@ -88,11 +82,7 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
         orderTime: order.orderTime,
         selectedMenuItems: order.menuItems.map((item) => ({
           menuItemId: item.menuItemId,
-          selectedType: (item.selectedType || order.orderType) as
-            | "only_dish"
-            | "only_dish_with_chart"
-            | "dish_without_chart"
-            | "dish_with_chart",
+          selectedType: item.selectedType,
         })),
         vehicleOwnerName: order.vehicleOwnerName || "",
         phoneNumber: order.phoneNumber || "",
@@ -219,49 +209,36 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
         name: menuItem.name,
         category: menuItem.category,
         type: menuItem.type,
-        selectedType: selectedType as "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart",
+        selectedType: selectedType as
+          | "only_bhajiya_kg"
+          | "dish_with_only_bhajiya"
+          | "dish_have_no_chart"
+          | "dish_have_chart_bhajiya",
         ingredients: menuItem.ingredients.map((ing) => {
           const ingredient = ingredients.find((i) => i._id === ing.ingredientId)!
 
-          const singleItems = ing.singleItems || {
-            onlyDishQuantity: ing.onlyDishQuantity,
-            onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity,
-            dishWithoutChartQuantity: ing.dishWithoutChartQuantity,
-            dishWithChartQuantity: ing.dishWithChartQuantity,
-          }
-
-          const multiItems = ing.multiItems || {
-            onlyDishQuantity: ing.onlyDishQuantity * 0.7,
-            onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity * 0.7,
-            dishWithoutChartQuantity: ing.dishWithoutChartQuantity * 0.7,
-            dishWithChartQuantity: ing.dishWithChartQuantity * 0.7,
-          }
-
-          let quantityPer100: number
-          switch (selectedType) {
-            case "only_dish":
-              quantityPer100 = singleItems.onlyDishQuantity
-              break
-            case "only_dish_with_chart":
-              quantityPer100 = singleItems.onlyDishWithChartQuantity
-              break
-            case "dish_without_chart":
-              quantityPer100 = singleItems.dishWithoutChartQuantity
-              break
-            case "dish_with_chart":
-              quantityPer100 = singleItems.dishWithChartQuantity
-              break
-            default:
-              quantityPer100 = singleItems.onlyDishQuantity
-          }
+          const quantityPer100 = ing.isDefaultIngredient
+            ? ing.quantities?.onlyBhajiyaKG || 12
+            : getQuantityForTypeNew(ing.quantities, selectedType)
 
           return {
             ingredientId: ing.ingredientId,
             ingredientName: ingredient.name,
             unit: ingredient.unit,
-            singleItems,
-            multiItems,
-            quantityPer100,
+            isDefaultIngredient: ing.isDefaultIngredient,
+            ingredient: ing.isDefaultIngredient
+              ? {
+                  defaultValue: ingredient?.defaultValue || 12,
+                  incrementThreshold: ingredient?.incrementThreshold || 3,
+                  incrementAmount: ingredient?.incrementAmount || 3,
+                }
+              : undefined,
+            quantities: ing.quantities || {
+              onlyBhajiyaKG: 0,
+              dishWithOnlyBhajiya: 0,
+              dishHaveNoChart: 0,
+              dishHaveChartAndBhajiya: 0,
+            },
           }
         }),
       }
@@ -302,17 +279,16 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
     } else {
       setFormData((prev) => {
         if (field === "orderType") {
-          const propagatedType = String(value) as
-            | "only_dish"
-            | "only_dish_with_chart"
-            | "dish_without_chart"
-            | "dish_with_chart"
           return {
             ...prev,
-            orderType: propagatedType,
+            orderType: String(value) as
+              | "only_bhajiya_kg"
+              | "dish_with_only_bhajiya"
+              | "dish_have_no_chart"
+              | "dish_have_chart_bhajiya",
             selectedMenuItems: prev.selectedMenuItems.map((item) => ({
               ...item,
-              selectedType: propagatedType,
+              selectedType: String(value),
             })),
           }
         }
@@ -328,11 +304,11 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
   const handleMenuItemToggle = (menuItemId: string, checked: boolean) => {
     setFormData((prev) => {
       if (checked) {
-        const globalType = (prev.orderType || "only_dish") as
-          | "only_dish"
-          | "only_dish_with_chart"
-          | "dish_without_chart"
-          | "dish_with_chart"
+        const globalType = (prev.orderType || "only_bhajiya_kg") as
+          | "only_bhajiya_kg"
+          | "dish_with_only_bhajiya"
+          | "dish_have_no_chart"
+          | "dish_have_chart_bhajiya"
         return {
           ...prev,
           selectedMenuItems: [...prev.selectedMenuItems, { menuItemId, selectedType: globalType }],
@@ -351,33 +327,34 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
 
   const scaledIngredients =
     formData.numberOfPeople > 0 && formData.selectedMenuItems.length > 0
-      ? scaleIngredientsWithDualValues(
+      ? scaleIngredientsWithMenuItems(
           formData.selectedMenuItems.map(({ menuItemId, selectedType }) => {
             const menuItem = menuItems.find((item) => item._id === menuItemId)!
             return {
               selectedType: selectedType as
-                | "only_dish"
-                | "only_dish_with_chart"
-                | "dish_without_chart"
-                | "dish_with_chart",
+                | "only_bhajiya_kg"
+                | "dish_with_only_bhajiya"
+                | "dish_have_no_chart"
+                | "dish_have_chart_bhajiya",
               ingredients: menuItem.ingredients.map((ing) => {
-                const ingredient = ingredients.find((i) => i._id === ing.ingredientId)!
-
+                const ingredient = ingredients.find((i) => i._id === ing.ingredientId)
                 return {
                   ingredientId: ing.ingredientId,
-                  ingredientName: ingredient.name,
-                  unit: ingredient.unit,
-                  singleItems: ing.singleItems || {
-                    onlyDishQuantity: ing.onlyDishQuantity,
-                    onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity,
-                    dishWithoutChartQuantity: ing.dishWithoutChartQuantity,
-                    dishWithChartQuantity: ing.dishWithChartQuantity,
-                  },
-                  multiItems: ing.multiItems || {
-                    onlyDishQuantity: ing.onlyDishQuantity * 0.7,
-                    onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity * 0.7,
-                    dishWithoutChartQuantity: ing.dishWithoutChartQuantity * 0.7,
-                    dishWithChartQuantity: ing.dishWithChartQuantity * 0.7,
+                  ingredientName: ingredient?.name || "Unknown",
+                  unit: ingredient?.unit || "kg",
+                  isDefaultIngredient: ing.isDefaultIngredient,
+                  ingredient: ing.isDefaultIngredient
+                    ? {
+                        defaultValue: ingredient?.defaultValue || 12,
+                        incrementThreshold: ingredient?.incrementThreshold || 3,
+                        incrementAmount: ingredient?.incrementAmount || 3,
+                      }
+                    : undefined,
+                  quantities: ing.quantities || {
+                    onlyBhajiyaKG: 0,
+                    dishWithOnlyBhajiya: 0,
+                    dishHaveNoChart: 0,
+                    dishHaveChartAndBhajiya: 0,
                   },
                 }
               }),
@@ -630,9 +607,16 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
                           key={ingredient.ingredientId}
                           className="flex justify-between items-center py-2 border-b border-muted last:border-b-0"
                         >
-                          <span className="text-sm font-medium">{ingredient.ingredientName}</span>
+                          <span className="text-sm font-medium">
+                            {ingredient.ingredientName}
+                            {ingredient.isDefaultIngredient && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                ({ingredient.menuItemCount} {t.menuItems})
+                              </span>
+                            )}
+                          </span>
                           <span className="text-sm font-semibold">
-                            {ingredient.totalQuantity} {ingredient.unit}
+                            {formatQuantityI18n(ingredient.totalQuantity, t)}
                           </span>
                         </div>
                       ))}
@@ -732,6 +716,33 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
       </DialogContent>
     </Dialog>
   )
+}
+
+function getQuantityForTypeNew(
+  quantities:
+    | {
+        onlyBhajiyaKG: number
+        dishWithOnlyBhajiya: number
+        dishHaveNoChart: number
+        dishHaveChartAndBhajiya: number
+      }
+    | undefined,
+  type: string,
+): number {
+  if (!quantities) return 0
+
+  switch (type) {
+    case "only_bhajiya_kg":
+      return quantities.onlyBhajiyaKG
+    case "dish_with_only_bhajiya":
+      return quantities.dishWithOnlyBhajiya
+    case "dish_have_no_chart":
+      return quantities.dishHaveNoChart
+    case "dish_have_chart_bhajiya":
+      return quantities.dishHaveChartAndBhajiya
+    default:
+      return 0
+  }
 }
 
 export { OrderDialog }

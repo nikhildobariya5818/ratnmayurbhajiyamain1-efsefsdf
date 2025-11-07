@@ -106,6 +106,148 @@ export function scaleIngredients(
   })
 }
 
+export function scaleIngredientsWithMenuItems(
+  menuItems: Array<{
+    selectedType: "only_bhajiya_kg" | "dish_with_only_bhajiya" | "dish_have_no_chart" | "dish_have_chart_bhajiya"
+    ingredients: Array<{
+      ingredientId: string
+      ingredientName: string
+      unit: string
+      isDefaultIngredient: boolean
+      ingredient?: {
+        defaultValue?: number
+        incrementThreshold?: number
+        incrementAmount?: number
+      }
+      quantities: {
+        onlyBhajiyaKG: number
+        dishWithOnlyBhajiya: number
+        dishHaveNoChart: number
+        dishHaveChartAndBhajiya: number
+      }
+    }>
+  }>,
+  numberOfPeople: number,
+): Array<{
+  ingredientId: string
+  ingredientName: string
+  unit: string
+  totalQuantity: number
+  isDefault: boolean
+  menuItemCount: number
+}> {
+  const scaledIngredients = new Map<
+    string,
+    {
+      ingredientId: string
+      ingredientName: string
+      unit: string
+      totalQuantity: number
+      isDefault: boolean
+      menuItemCount: number
+    }
+  >()
+
+  const scalingFactor = numberOfPeople / 100
+
+  menuItems.forEach((menuItem) => {
+    if (!menuItem || !menuItem.ingredients) {
+      return
+    }
+
+    menuItem.ingredients.forEach((ingredient) => {
+      if (!ingredient || !ingredient.ingredientId) {
+        return
+      }
+
+      if (scaledIngredients.has(ingredient.ingredientId)) {
+        const existing = scaledIngredients.get(ingredient.ingredientId)!
+        existing.menuItemCount += 1
+      } else {
+        scaledIngredients.set(ingredient.ingredientId, {
+          ingredientId: ingredient.ingredientId,
+          ingredientName: ingredient.ingredientName,
+          unit: ingredient.unit,
+          totalQuantity: 0,
+          isDefault: ingredient.isDefaultIngredient,
+          menuItemCount: 1,
+        })
+      }
+    })
+  })
+
+  menuItems.forEach((menuItem) => {
+    if (!menuItem || !menuItem.ingredients) {
+      return
+    }
+
+    menuItem.ingredients.forEach((ingredient) => {
+      if (!ingredient || !ingredient.ingredientId) {
+        return
+      }
+
+      const ingredientData = scaledIngredients.get(ingredient.ingredientId)!
+      let quantityPer100 = 0
+
+      if (ingredient.isDefaultIngredient) {
+        const menuItemCount = ingredientData.menuItemCount
+        const baseQuantity = ingredient.ingredient?.defaultValue ?? 12
+        const threshold = ingredient.ingredient?.incrementThreshold ?? 3
+        const increment = ingredient.ingredient?.incrementAmount ?? 3
+
+        if (menuItemCount <= threshold) {
+          quantityPer100 = baseQuantity
+        } else {
+          quantityPer100 = baseQuantity + (menuItemCount - threshold) * increment
+        }
+      } else {
+        const quantities = ingredient.quantities || {
+          onlyBhajiyaKG: 0,
+          dishWithOnlyBhajiya: 0,
+          dishHaveNoChart: 0,
+          dishHaveChartAndBhajiya: 0,
+        }
+
+        switch (menuItem.selectedType) {
+          case "only_bhajiya_kg":
+            quantityPer100 = quantities.onlyBhajiyaKG
+            break
+          case "dish_with_only_bhajiya":
+            quantityPer100 = quantities.dishWithOnlyBhajiya
+            break
+          case "dish_have_no_chart":
+            quantityPer100 = quantities.dishHaveNoChart
+            break
+          case "dish_have_chart_bhajiya":
+            quantityPer100 = quantities.dishHaveChartAndBhajiya
+            break
+          default:
+            quantityPer100 = 0
+        }
+      }
+
+      const scaledQuantity = quantityPer100 * scalingFactor
+
+      const roundedQuantity = ["piece"].includes(ingredient.unit)
+        ? Math.round(scaledQuantity)
+        : Math.round(scaledQuantity * 100) / 100
+
+      if (ingredientData.totalQuantity === 0) {
+        ingredientData.totalQuantity = roundedQuantity
+      }
+    })
+  })
+
+  const result = Array.from(scaledIngredients.values()).sort((a, b) => {
+    if (a.isDefault !== b.isDefault) {
+      return a.isDefault ? -1 : 1
+    }
+    return a.ingredientName.localeCompare(b.ingredientName)
+  })
+
+  return result
+}
+
 export function scaleIngredientsWithDualValues(
   menuItems: Array<{
     selectedType: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart"
@@ -148,7 +290,6 @@ export function scaleIngredientsWithDualValues(
 
   const scalingFactor = numberOfPeople / 100
 
-  // First pass: collect all ingredients and count how many menu items use each
   menuItems.forEach((menuItem) => {
     if (!menuItem || !menuItem.ingredients) {
       return
@@ -181,7 +322,6 @@ export function scaleIngredientsWithDualValues(
     })
   })
 
-  // Second pass: calculate quantities using appropriate values (single vs multi)
   menuItems.forEach((menuItem) => {
     if (!menuItem || !menuItem.ingredients) {
       return
@@ -200,27 +340,22 @@ export function scaleIngredientsWithDualValues(
       let quantityPer100 = 0
 
       if (ingredient.singleItems && ingredient.multiItems) {
-        // Use dual values logic
         const useSingleValues = ingredientData.menuItemsUsingThis === 1
-
         quantityPer100 = useSingleValues
           ? getQuantityForType(ingredient.singleItems, menuItem.selectedType)
           : getQuantityForType(ingredient.multiItems, menuItem.selectedType)
       } else if (ingredient.quantityPer100 !== undefined) {
-        // Use legacy structure
         quantityPer100 = ingredient.quantityPer100
       }
 
       const scaledQuantity = quantityPer100 * scalingFactor
 
-      // Round based on unit type
       const roundedQuantity = ["piece"].includes(ingredient.unit)
         ? Math.round(scaledQuantity)
         : Math.round(scaledQuantity * 100) / 100
 
       ingredientData.totalQuantity += roundedQuantity
 
-      // Re-round after aggregation
       ingredientData.totalQuantity = ["piece"].includes(ingredient.unit)
         ? Math.round(ingredientData.totalQuantity)
         : Math.round(ingredientData.totalQuantity * 100) / 100

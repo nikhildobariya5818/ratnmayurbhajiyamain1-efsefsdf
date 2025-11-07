@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Download, Users, ChefHat, FileText, Phone, Truck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { OrderPDF } from "./pdf/OrderPDF" // <- your @react-pdf/renderer document
-import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
+import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import { generatePDFFilename } from "@/lib/pdf-utils"
+import { useLanguage } from "@/lib/language-context"
+import { formatQuantityI18n } from "@/lib/format-quantity"
 
 interface PDFReportProps {
   order: Order
@@ -17,15 +19,18 @@ interface PDFReportProps {
 }
 
 export function PDFReport({ order, onClose }: PDFReportProps) {
+  const { t } = useLanguage()
   const client = order.client || order.clientSnapshot
 
-  const hasDualValues = order.menuItems.some((item) =>
-    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  const scaledIngredients = scaleIngredientsWithMenuItems(
+    order.menuItems.map((item) => ({
+      menuItemId: item._id,
+      name: item.name,
+      selectedType: item.selectedType || item.type,
+      ingredients: item.ingredients,
+    })),
+    order.numberOfPeople,
   )
-
-  const scaledIngredients = hasDualValues
-    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
-    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const pdfFilename = generatePDFFilename(client?.name || "Unknown_Client", order.orderDate)
 
@@ -154,9 +159,7 @@ export function PDFReport({ order, onClose }: PDFReportProps) {
                   }`}
                 >
                   <span className="text-sm font-medium">{ingredient.ingredientName}</span>
-                  <span className="text-sm font-semibold">
-                    {ingredient.totalQuantity} {ingredient.unit}
-                  </span>
+                  <span className="text-sm font-semibold">{formatQuantityI18n(ingredient.totalQuantity, t)}</span>
                 </div>
               ))}
             </div>

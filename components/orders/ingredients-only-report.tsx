@@ -5,18 +5,23 @@ import type { Order } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Download } from "lucide-react"
-import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
+import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import { IngredientsOnlyPDF } from "./pdf/IngredientsOnlyPDF"
 import { generatePDFFilename } from "@/lib/pdf-utils"
+import { useLanguage } from "@/lib/language-context"
+import { formatQuantityI18n } from "@/lib/format-quantity"
 
 export function IngredientsOnlyReport({ order }: { order: Order }) {
-  const hasDualValues = order.menuItems.some((item) =>
-    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  const { t } = useLanguage()
+  const scaledIngredients = scaleIngredientsWithMenuItems(
+    order.menuItems.map((item) => ({
+      menuItemId: item._id,
+      name: item.name,
+      selectedType: item.selectedType || item.type,
+      ingredients: item.ingredients,
+    })),
+    order.numberOfPeople,
   )
-
-  const scaledIngredients = hasDualValues
-    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
-    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const pdfFilename = `${generatePDFFilename(
     order.client?.name || order.clientSnapshot?.name || "Unknown_Client",
@@ -42,9 +47,7 @@ export function IngredientsOnlyReport({ order }: { order: Order }) {
                 }`}
               >
                 <span className="text-sm font-medium">{ingredient.ingredientName}</span>
-                <span className="text-sm font-semibold">
-                  {ingredient.totalQuantity} {ingredient.unit}
-                </span>
+                <span className="text-sm font-semibold">{formatQuantityI18n(ingredient.totalQuantity, t)}</span>
               </div>
             ))}
           </div>

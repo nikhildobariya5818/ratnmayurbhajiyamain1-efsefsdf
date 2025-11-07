@@ -59,9 +59,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    const updateData = {
+    const updateData: any = {
       name: body.name.trim(),
       unit: body.unit,
+    }
+
+    // Add default ingredient fields if marking as default
+    if (body.isDefault !== undefined) {
+      updateData.isDefault = body.isDefault
+      if (body.isDefault) {
+        updateData.defaultValue = body.defaultValue || 12
+        updateData.incrementThreshold = body.incrementThreshold || 3
+        updateData.incrementAmount = body.incrementAmount || 3
+      }
     }
 
     const ingredient = await IngredientModel.update(params.id, updateData)

@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate selectedType
-      const validTypes = ["only_dish", "only_dish_with_chart", "dish_without_chart", "dish_with_chart"]
+      const validTypes = ["only_bhajiya_kg", "dish_with_only_bhajiya", "dish_have_no_chart", "dish_have_chart_bhajiya"]
       if (!validTypes.includes(orderMenuItem.selectedType)) {
         return NextResponse.json(
           {
@@ -176,29 +176,16 @@ export async function POST(request: NextRequest) {
       for (const ing of menuItem.ingredients) {
         const ingredientDetails = await IngredientModel.findById(ing.ingredientId)
 
-        const singleItems = ing.singleItems || {
-          onlyDishQuantity: ing.onlyDishQuantity,
-          onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity,
-          dishWithoutChartQuantity: ing.dishWithoutChartQuantity,
-          dishWithChartQuantity: ing.dishWithChartQuantity,
-        }
-
-        const multiItems = ing.multiItems || {
-          onlyDishQuantity: ing.onlyDishQuantity * 0.7,
-          onlyDishWithChartQuantity: ing.onlyDishWithChartQuantity * 0.7,
-          dishWithoutChartQuantity: ing.dishWithoutChartQuantity * 0.7,
-          dishWithChartQuantity: ing.dishWithChartQuantity * 0.7,
-        }
+        const quantityPer100 = ing.isDefaultIngredient
+          ? ing.quantities?.onlyBhajiyaKG || 12 // Default ingredients use 12kg base
+          : getQuantityForTypeNew(ing.quantities, orderMenuItem.selectedType)
 
         ingredients.push({
           ingredientId: ing.ingredientId,
           ingredientName: ingredientDetails?.name || "Unknown Ingredient",
-          unit: ingredientDetails?.unit || "piece",
-          // Store both single and multi values instead of just quantityPer100
-          singleItems,
-          multiItems,
-          // Keep legacy field for backward compatibility
-          quantityPer100: getQuantityForType(singleItems, orderMenuItem.selectedType),
+          unit: ingredientDetails?.unit || "kg",
+          isDefaultIngredient: ing.isDefaultIngredient,
+          quantityPer100,
         })
       }
 
@@ -252,26 +239,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper function to get quantity based on selected type
-function getQuantityForType(
-  ingredient: {
-    onlyDishQuantity: number
-    onlyDishWithChartQuantity: number
-    dishWithoutChartQuantity: number
-    dishWithChartQuantity: number
-  },
-  type: "only_dish" | "only_dish_with_chart" | "dish_without_chart" | "dish_with_chart",
+function getQuantityForTypeNew(
+  quantities:
+    | {
+        onlyBhajiyaKG: number
+        dishWithOnlyBhajiya: number
+        dishHaveNoChart: number
+        dishHaveChartAndBhajiya: number
+      }
+    | undefined,
+  type: "only_bhajiya_kg" | "dish_with_only_bhajiya" | "dish_have_no_chart" | "dish_have_chart_bhajiya",
 ): number {
+  if (!quantities) return 0
+
   switch (type) {
-    case "only_dish":
-      return ingredient.onlyDishQuantity
-    case "only_dish_with_chart":
-      return ingredient.onlyDishWithChartQuantity
-    case "dish_without_chart":
-      return ingredient.dishWithoutChartQuantity
-    case "dish_with_chart":
-      return ingredient.dishWithChartQuantity
+    case "only_bhajiya_kg":
+      return quantities.onlyBhajiyaKG
+    case "dish_with_only_bhajiya":
+      return quantities.dishWithOnlyBhajiya
+    case "dish_have_no_chart":
+      return quantities.dishHaveNoChart
+    case "dish_have_chart_bhajiya":
+      return quantities.dishHaveChartAndBhajiya
     default:
-      return ingredient.onlyDishQuantity
+      return 0
   }
 }

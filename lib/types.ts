@@ -17,6 +17,8 @@ export interface Ingredient {
   unit: "gram" | "kg" | "ml" | "L" | "piece" | "જબલા"
   isDefault: boolean
   defaultValue?: number // Default value is 12 kg for default ingredients
+  incrementThreshold?: number // Number of menu items before increment starts (e.g., 3 for Bhajiya, 2 for Dhana)
+  incrementAmount?: number // How much to add per extra menu item (e.g., 3 kg for Bhajiya, 2 kg for Dhana)
   createdAt: Date
   updatedAt: Date
 }

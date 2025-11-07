@@ -43,6 +43,8 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
     unit: "" as "gram" | "kg" | "ml" | "L" | "piece" | "જબલા" | "",
     isDefault: false,
     defaultValue: 12,
+    incrementThreshold: 3,
+    incrementAmount: 3,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -54,6 +56,8 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
         unit: ingredient.unit,
         isDefault: ingredient.isDefault || false,
         defaultValue: ingredient.defaultValue || 12,
+        incrementThreshold: ingredient.incrementThreshold || 3,
+        incrementAmount: ingredient.incrementAmount || 3,
       })
     } else {
       setFormData({
@@ -61,6 +65,8 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
         unit: "",
         isDefault: false,
         defaultValue: 12,
+        incrementThreshold: 3,
+        incrementAmount: 3,
       })
     }
     setErrors({})
@@ -99,6 +105,8 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
       unit: formData.unit as "gram" | "kg" | "ml" | "L" | "piece" | "જબલા",
       isDefault: formData.isDefault,
       defaultValue: formData.isDefault ? formData.defaultValue : undefined,
+      incrementThreshold: formData.isDefault ? formData.incrementThreshold : undefined,
+      incrementAmount: formData.isDefault ? formData.incrementAmount : undefined,
     })
   }
 
@@ -171,21 +179,62 @@ export function IngredientDialog({ open, onOpenChange, ingredient, onSubmit }: I
               </div>
 
               {formData.isDefault && (
-                <div className="grid gap-2 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <Label htmlFor="defaultValue">Default Quantity (per order)</Label>
-                  <Input
-                    id="defaultValue"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={formData.defaultValue}
-                    onChange={(e) => handleInputChange("defaultValue", Number.parseFloat(e.target.value) || 0)}
-                    className={errors.defaultValue ? "border-destructive" : ""}
-                  />
-                  {errors.defaultValue && <p className="text-sm text-destructive">{errors.defaultValue}</p>}
-                  <p className="text-xs text-muted-foreground">
-                    This value will be added when 3+ menu items share this ingredient
-                  </p>
+                <div className="grid gap-4 bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="grid gap-2">
+                    <Label htmlFor="defaultValue">Default Quantity (base value)</Label>
+                    <Input
+                      id="defaultValue"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={formData.defaultValue}
+                      onChange={(e) => handleInputChange("defaultValue", Number.parseFloat(e.target.value) || 0)}
+                      className={errors.defaultValue ? "border-destructive" : ""}
+                    />
+                    {errors.defaultValue && <p className="text-sm text-destructive">{errors.defaultValue}</p>}
+                    <p className="text-xs text-muted-foreground">Base value when 1-X menu items use this ingredient</p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="incrementThreshold">Menu Items Threshold</Label>
+                    <Input
+                      id="incrementThreshold"
+                      type="number"
+                      min="1"
+                      value={formData.incrementThreshold}
+                      onChange={(e) => handleInputChange("incrementThreshold", Number.parseInt(e.target.value) || 3)}
+                      placeholder="e.g., 3 for Bhajiya, 2 for Dhana"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Number of menu items before increment starts (e.g., 3 means increment starts at 4th item)
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="incrementAmount">Increment Amount</Label>
+                    <Input
+                      id="incrementAmount"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={formData.incrementAmount}
+                      onChange={(e) => handleInputChange("incrementAmount", Number.parseFloat(e.target.value) || 3)}
+                      placeholder="e.g., 3 kg for Bhajiya, 2 kg for Dhana"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Amount to add per menu item after threshold is reached
+                    </p>
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-900 p-2 rounded border border-blue-300 dark:border-blue-700">
+                    <p className="text-xs font-semibold mb-1">Scaling Formula:</p>
+                    <p className="text-xs text-muted-foreground">
+                      1-{formData.incrementThreshold} items: {formData.defaultValue} {formData.unit} base
+                      <br />
+                      {formData.incrementThreshold + 1}+ items: {formData.defaultValue} + (count -{" "}
+                      {formData.incrementThreshold}) × {formData.incrementAmount} {formData.unit}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

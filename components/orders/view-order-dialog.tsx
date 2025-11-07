@@ -13,11 +13,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Users, Calendar, Phone, ChefHat, Truck, FileText, Download } from "lucide-react"
 import type { Order } from "@/lib/types"
-import { scaleIngredients, scaleIngredientsWithDualValues } from "@/lib/database"
+import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import { pdf } from "@react-pdf/renderer"
 import { useState } from "react"
 import { OrderPDF } from "./pdf/OrderPDF"
 import { generatePDFFilename } from "@/lib/pdf-utils"
+import { useLanguage } from "@/lib/language-context"
+import { formatQuantityI18n } from "@/lib/format-quantity"
 
 interface ViewOrderDialogProps {
   open: boolean
@@ -26,19 +28,22 @@ interface ViewOrderDialogProps {
 }
 
 export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogProps) {
+  const { t } = useLanguage()
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
   if (!order) return null
 
   const client = order.client || order.clientSnapshot
 
-  const hasDualValues = order.menuItems.some((item) =>
-    item.ingredients.some((ing) => ing.singleItems && ing.multiItems),
+  const scaledIngredients = scaleIngredientsWithMenuItems(
+    order.menuItems.map((item) => ({
+      menuItemId: item._id,
+      name: item.name,
+      selectedType: item.selectedType || item.type,
+      ingredients: item.ingredients,
+    })),
+    order.numberOfPeople,
   )
-
-  const scaledIngredients = hasDualValues
-    ? scaleIngredientsWithDualValues(order.menuItems, order.numberOfPeople)
-    : scaleIngredients(order.menuItems, order.numberOfPeople)
 
   const generatePDF = async () => {
     try {
@@ -157,16 +162,12 @@ export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogPr
             </CardContent>
           </Card>
 
+          {/* Ingredient Requirements */}
           <Card className="border-2">
             <CardHeader className="pb-3 bg-muted/30">
               <CardTitle className="text-lg flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Ingredient Requirements
-                {hasDualValues && (
-                  <Badge variant="secondary" className="text-xs">
-                    Smart Scaling
-                  </Badge>
-                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
@@ -178,9 +179,7 @@ export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogPr
                       className="flex justify-between items-center py-3 border-b border-muted last:border-b-0"
                     >
                       <span className="text-sm font-medium">{ingredient.ingredientName}</span>
-                      <span className="text-sm font-semibold">
-                        {ingredient.totalQuantity} {ingredient.unit}
-                      </span>
+                      <span className="text-sm font-semibold">{formatQuantityI18n(ingredient.totalQuantity, t)}</span>
                     </div>
                   ))
                 ) : (

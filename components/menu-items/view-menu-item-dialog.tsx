@@ -12,7 +12,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Scale, Beaker, Package } from "lucide-react"
-import type { MenuItem, Ingredient } from "@/lib/types"
+import type { MenuItem } from "@/lib/types"
+import { useLanguage } from "@/lib/language-context"
+import { formatQuantityI18n } from "@/lib/format-quantity"
 
 interface ViewMenuItemDialogProps {
   open: boolean
@@ -21,17 +23,24 @@ interface ViewMenuItemDialogProps {
 }
 
 const typeColors = {
-  only_dish: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  only_dish_with_chart: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  dish_without_chart: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-  dish_with_chart: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  only_bhajiya_kg: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  dish_with_only_bhajiya: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  dish_have_no_chart: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+  dish_have_chart_bhajiya: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
 }
 
 const typeLabels = {
-  only_dish: "Only bhajiya (KG)",
-  only_dish_with_chart: "Dish with Only bhajiya",
-  dish_without_chart: "Dish have no Chart",
-  dish_with_chart: "Dish have Chart & Bhajiya",
+  only_bhajiya_kg: "Only Bhajiya (KG)",
+  dish_with_only_bhajiya: "Dish with Only Bhajiya",
+  dish_have_no_chart: "Dish have no Chart",
+  dish_have_chart_bhajiya: "Dish have Chart & Bhajiya",
+}
+
+const quantityFieldMap = {
+  only_bhajiya_kg: "onlyBhajiyaKG",
+  dish_with_only_bhajiya: "dishWithOnlyBhajiya",
+  dish_have_no_chart: "dishHaveNoChart",
+  dish_have_chart_bhajiya: "dishHaveChartAndBhajiya",
 }
 
 const unitIcons = {
@@ -40,29 +49,15 @@ const unitIcons = {
   ml: Beaker,
   L: Beaker,
   piece: Package,
+  જબલા: Package,
 }
 
-// Mock ingredients for display (would come from props in real app)
-const mockIngredients: Ingredient[] = [
-  { _id: "1", name: "Besan (Gram Flour)", unit: "kg", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "2", name: "Onions", unit: "kg", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "3", name: "Green Chilies", unit: "gram", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "4", name: "Turmeric Powder", unit: "gram", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "5", name: "Cooking Oil", unit: "L", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "6", name: "Salt", unit: "gram", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "7", name: "Coriander Seeds", unit: "gram", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "8", name: "Cumin Seeds", unit: "gram", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "9", name: "Potatoes", unit: "kg", createdAt: new Date(), updatedAt: new Date() },
-  { _id: "10", name: "Spinach", unit: "kg", createdAt: new Date(), updatedAt: new Date() },
-]
-
 export function ViewMenuItemDialog({ open, onOpenChange, menuItem }: ViewMenuItemDialogProps) {
+  const { t } = useLanguage()
+
   if (!menuItem) return null
 
-  const ingredientsWithDetails = menuItem.ingredients.map((ing) => ({
-    ...ing,
-    ingredient: mockIngredients.find((i) => i._id === ing.ingredientId),
-  }))
+  const quantityField = quantityFieldMap[menuItem.type as keyof typeof quantityFieldMap]
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,11 +102,13 @@ export function ViewMenuItemDialog({ open, onOpenChange, menuItem }: ViewMenuIte
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {ingredientsWithDetails.map((ing, index) => {
+                {menuItem.ingredients.map((ing, index) => {
                   const ingredient = ing.ingredient
                   if (!ingredient) return null
 
-                  const Icon = unitIcons[ingredient.unit]
+                  const quantity = ing.quantities[quantityField as keyof typeof ing.quantities]
+
+                  const Icon = unitIcons[ingredient.unit as keyof typeof unitIcons] || Package
 
                   return (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -120,9 +117,7 @@ export function ViewMenuItemDialog({ open, onOpenChange, menuItem }: ViewMenuIte
                         <span className="font-medium">{ingredient.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm">
-                          {ing.quantityPer100} {ingredient.unit}
-                        </span>
+                        <span className="font-mono text-sm">{formatQuantityI18n(quantity, t)}</span>
                       </div>
                     </div>
                   )
