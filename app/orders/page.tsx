@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Edit, Trash2, FileText, Users, Calendar, MapPin, Loader2, Download, ChefHat } from "lucide-react"
+import { Plus, Search, Edit, Trash2, FileText, Users, Calendar, MapPin, Loader2, Download, ChefHat } from 'lucide-react'
 import { OrderDialog } from "@/components/orders/order-dialog"
 import { DeleteOrderDialog } from "@/components/orders/delete-order-dialog"
 import { ViewOrderDialog } from "@/components/orders/view-order-dialog"
@@ -151,11 +151,11 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto px-4 py-6 md:px-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p>
+            <p className="text-sm md:text-base">
               {t.loading} {t.orders}...
             </p>
           </div>
@@ -165,14 +165,14 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col gap-6">
+    <div className="container mx-auto px-4 py-6 md:px-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         {error && (
           <Card className="border-destructive">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-destructive">{error}</p>
-                <Button variant="outline" size="sm" onClick={loadAllData}>
+            <CardContent className="p-3 md:p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <p className="text-xs md:text-sm text-destructive">{error}</p>
+                <Button variant="outline" size="sm" onClick={loadAllData} className="text-xs md:text-sm w-full sm:w-auto">
                   {t.retry}
                 </Button>
               </div>
@@ -180,25 +180,25 @@ export default function OrdersPage() {
           </Card>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-balance">{t.orderManagement}</h1>
-            <p className="text-muted-foreground">{t.createManageOrders}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-balance">{t.orderManagement}</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">{t.createManageOrders}</p>
           </div>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+          <Button onClick={openCreateDialog} className="flex items-center gap-2 w-full sm:w-auto text-xs md:text-sm">
             <Plus className="h-4 w-4" />
             {t.createOrder}
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder={t.searchOrders}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-xs md:text-sm"
             />
           </div>
 
@@ -207,6 +207,7 @@ export default function OrdersPage() {
               variant={selectedOrderType === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedOrderType("all")}
+              className="text-xs md:text-sm"
             >
               All Types
             </Button>
@@ -216,6 +217,7 @@ export default function OrdersPage() {
                 variant={selectedOrderType === type ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedOrderType(type)}
+                className="text-xs md:text-sm"
               >
                 {type} ({orderTypeCounts[type]})
               </Button>
@@ -223,36 +225,36 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.totalOrders}</p>
-                  <p className="text-2xl font-bold">{orders.length}</p>
+                <FileText className="h-4 w-4 md:h-5 md:w-5 text-blue-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.totalOrders}</p>
+                  <p className="text-lg md:text-2xl font-bold">{orders.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total People</p>
-                  <p className="text-2xl font-bold">{orders.reduce((sum, order) => sum + order.numberOfPeople, 0)}</p>
+                <Users className="h-4 w-4 md:h-5 md:w-5 text-green-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Total People</p>
+                  <p className="text-lg md:text-2xl font-bold">{orders.reduce((sum, order) => sum + order.numberOfPeople, 0)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.thisMonth}</p>
-                  <p className="text-2xl font-bold">
+                <Calendar className="h-4 w-4 md:h-5 md:w-5 text-purple-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.thisMonth}</p>
+                  <p className="text-lg md:text-2xl font-bold">
                     {
                       orders.filter((order) => {
                         const orderMonth = new Date(order.orderDate).getMonth()
@@ -266,88 +268,90 @@ export default function OrdersPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.searchResults}</p>
-                  <p className="text-2xl font-bold">{filteredOrders.length}</p>
+                <Search className="h-4 w-4 md:h-5 md:w-5 text-orange-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.searchResults}</p>
+                  <p className="text-lg md:text-2xl font-bold">{filteredOrders.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
           {filteredOrders.map((order) => {
             const client = order.client || order.clientSnapshot
             const orderTypeColor =
               orderTypeColors[order.orderType as keyof typeof orderTypeColors] || orderTypeColors.Other
-
+              // console.log("order data",order);
+              
             return (
               <Card key={order._id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{client?.name || "New Client"}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 mt-1">
-                        <Users className="h-3 w-3" />
+                <CardHeader className="pb-2 md:pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base md:text-lg line-clamp-1">{client?.name || "New Client"}</CardTitle>
+                      <CardDescription className="flex items-center gap-1 mt-1 text-xs md:text-sm">
+                        <Users className="h-3 w-3 flex-shrink-0" />
                         {order.numberOfPeople} people
                       </CardDescription>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge className={orderTypeColor} variant="secondary">
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <Badge className={orderTypeColor} variant="secondary" className="text-xs md:text-sm">
                           {order.orderType}
                         </Badge>
-                        <Badge variant="outline">{order.menuItems.length} items</Badge>
+                        <Badge variant="outline" className="text-xs md:text-sm">{order.menuItems.length} items</Badge>
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5 flex-shrink-0 flex-wrap justify-end">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setViewingOrder(order)}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0 md:px-2 md:w-auto"
                         title="View Details"
                       >
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden md:inline md:ml-1 text-xs">{t.view}</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setIngredientOnlyOrder(order)}
-                        className="h-8 w-8 p-0"
-                        title="Ingredients PDF Preview"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0 md:px-2 md:w-auto"
+                        title="Ingredients PDF"
                       >
-                        <ChefHat className="h-4 w-4" />
+                        <ChefHat className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden md:inline md:ml-1 text-xs">Ing</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setPdfReportOrder(order)}
-                        className="h-8 w-8 p-0"
-                        title="Generate PDF Report"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0 md:px-2 md:w-auto"
+                        title="PDF Report"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden md:inline md:ml-1 text-xs">PDF</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditDialog(order)}
-                        aria-label={t.editOrder}
-                        className="h-8 px-2 gap-1"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0"
                         title={t.editOrder}
                       >
-                        <Edit className="h-4 w-4" />
-                        <span className="hidden sm:inline">{t.editOrder}</span>
+                        <Edit className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setDeletingOrder(order)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0 text-destructive hover:text-destructive"
                         title="Delete"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </div>
                   </div>
@@ -356,23 +360,23 @@ export default function OrdersPage() {
                   <div className="space-y-2">
                     <div className="flex items-start gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <div className="text-sm">
+                      <div className="text-xs md:text-sm min-w-0">
                         <p className="font-medium">{new Date(order.orderDate).toLocaleDateString()}</p>
                         <p className="text-muted-foreground">{order.orderTime}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-muted-foreground line-clamp-2">{order.address}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{order.address}</p>
                     </div>
                     {order.chefName && (
                       <div className="flex items-start gap-2">
                         <Users className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-muted-foreground">{order.chefName}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{order.chefName}</p>
                       </div>
                     )}
                     <div className="mt-2">
-                      <p className="text-sm font-medium mb-1">Menu Items:</p>
+                      <p className="text-xs md:text-sm font-medium mb-1">Menu Items:</p>
                       <div className="flex flex-wrap gap-1">
                         {order.menuItems.slice(0, 2).map((item) => (
                           <Badge key={item.menuItemId} variant="outline" className="text-xs">
@@ -381,7 +385,7 @@ export default function OrdersPage() {
                         ))}
                         {order.menuItems.length > 2 && (
                           <Badge variant="outline" className="text-xs">
-                            +{order.menuItems.length - 2} more
+                            +{order.menuItems.length - 2}
                           </Badge>
                         )}
                       </div>
@@ -395,14 +399,14 @@ export default function OrdersPage() {
 
         {filteredOrders.length === 0 && !loading && (
           <Card>
-            <CardContent className="p-8 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t.noOrdersFound}</h3>
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="p-6 md:p-8 text-center">
+              <FileText className="h-10 md:h-12 w-10 md:w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-base md:text-lg font-semibold mb-2">{t.noOrdersFound}</h3>
+              <p className="text-xs md:text-sm text-muted-foreground mb-4">
                 {searchTerm || selectedOrderType !== "all" ? t.tryAdjustingSearch : t.getStartedCreateOrder}
               </p>
               {!searchTerm && selectedOrderType === "all" && (
-                <Button onClick={openCreateDialog}>
+                <Button onClick={openCreateDialog} className="w-full sm:w-auto text-xs md:text-sm">
                   <Plus className="h-4 w-4 mr-2" />
                   {t.createOrder}
                 </Button>

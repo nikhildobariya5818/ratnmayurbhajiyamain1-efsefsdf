@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Package, ChefHat, FileText, BarChart3, Settings } from "lucide-react"
+import { Users, Package, ChefHat, FileText, BarChart3, Settings } from 'lucide-react'
 import Link from "next/link"
 // import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { useLanguage } from "@/lib/language-context"
@@ -57,13 +57,13 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-4 py-6 md:px-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-balance">{t.cateringManagementSystem}</h1>
-        <p className="text-muted-foreground mt-2">{t.manageCateringBusiness}</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-balance">{t.cateringManagementSystem}</h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-2">{t.manageCateringBusiness}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {modules.map((module) => {
           const Icon = module.icon
           return (
@@ -71,14 +71,14 @@ export default function Dashboard() {
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <Icon className={`h-8 w-8 ${module.color}`} />
+                    <Icon className={`h-6 w-6 md:h-8 md:w-8 ${module.color}`} />
                     <div>
-                      <CardTitle className="text-xl">{module.title}</CardTitle>
+                      <CardTitle className="text-base md:text-lg">{module.title}</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-sm">{module.description}</CardDescription>
+                  <CardDescription className="text-xs md:text-sm">{module.description}</CardDescription>
                 </CardContent>
               </Card>
             </Link>
@@ -86,11 +86,6 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* <InstallPrompt /> */}
     </div>
-
-  //   <PDFViewer>
-  //   <MyDocument/>
-  // </PDFViewer>
   )
 }

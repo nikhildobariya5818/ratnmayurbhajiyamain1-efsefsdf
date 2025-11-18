@@ -82,7 +82,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "numberOfPeople, address, orderType, orderDate, orderTime, and menuItems array are required",
+          error:
+            "numberOfPeople, address, orderType, orderDate, orderTime, and menuItems array are required",
         },
         { status: 400 },
       )
@@ -91,10 +92,7 @@ export async function POST(request: NextRequest) {
     // Validate numberOfPeople
     if (typeof body.numberOfPeople !== "number" || body.numberOfPeople <= 0) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "numberOfPeople must be a positive number",
-        },
+        { success: false, error: "numberOfPeople must be a positive number" },
         { status: 400 },
       )
     }
@@ -102,104 +100,31 @@ export async function POST(request: NextRequest) {
     // Validate menu items
     if (body.menuItems.length === 0) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "At least one menu item is required",
-        },
+        { success: false, error: "At least one menu item is required" },
         { status: 400 },
       )
     }
 
-    // Validate client or client snapshot
+    // Validate client
     if (!body.clientId && !body.clientSnapshot) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Either clientId or clientSnapshot is required",
-        },
+        { success: false, error: "Either clientId or clientSnapshot is required" },
         { status: 400 },
       )
     }
 
-    // If clientId is provided, validate it exists
     if (body.clientId) {
       const client = await ClientModel.findById(body.clientId)
       if (!client) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "Client not found",
-          },
+          { success: false, error: "Client not found" },
           { status: 400 },
         )
       }
     }
 
-    // Validate and populate menu items
-    const processedMenuItems = []
-    for (const orderMenuItem of body.menuItems) {
-      if (!orderMenuItem.menuItemId || !orderMenuItem.selectedType) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Each menu item must have menuItemId and selectedType",
-          },
-          { status: 400 },
-        )
-      }
-
-      // Validate menu item exists
-      const menuItem = await MenuItemModel.findById(orderMenuItem.menuItemId)
-      if (!menuItem) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Menu item with ID ${orderMenuItem.menuItemId} not found`,
-          },
-          { status: 400 },
-        )
-      }
-
-      // Validate selectedType
-      const validTypes = ["only_bhajiya_kg", "dish_with_only_bhajiya", "dish_have_no_chart", "dish_have_chart_bhajiya"]
-      if (!validTypes.includes(orderMenuItem.selectedType)) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Invalid selectedType for menu item",
-          },
-          { status: 400 },
-        )
-      }
-
-      const ingredients = []
-      for (const ing of menuItem.ingredients) {
-        const ingredientDetails = await IngredientModel.findById(ing.ingredientId)
-
-        const quantityPer100 = ing.isDefaultIngredient
-          ? ing.quantities?.onlyBhajiyaKG || 12 // Default ingredients use 12kg base
-          : getQuantityForTypeNew(ing.quantities, orderMenuItem.selectedType)
-
-        ingredients.push({
-          ingredientId: ing.ingredientId,
-          ingredientName: ingredientDetails?.name || "Unknown Ingredient",
-          unit: ingredientDetails?.unit || "kg",
-          isDefaultIngredient: ing.isDefaultIngredient,
-          quantityPer100,
-        })
-      }
-
-      processedMenuItems.push({
-        menuItemId: orderMenuItem.menuItemId,
-        selectedType: orderMenuItem.selectedType,
-        name: menuItem.name,
-        category: menuItem.category,
-        type: menuItem.type,
-        ingredients,
-      })
-    }
-
-    const orderData: Omit<Order, "_id" | "createdAt" | "updatedAt"> = {
+    // 🔥 NEW LOGIC — same as UPDATE: directly save menuItems
+    const orderData = {
       clientId: body.clientId || undefined,
       clientSnapshot: body.clientSnapshot || undefined,
       numberOfPeople: body.numberOfPeople,
@@ -207,7 +132,8 @@ export async function POST(request: NextRequest) {
       orderType: body.orderType.trim(),
       orderDate: new Date(body.orderDate),
       orderTime: body.orderTime.trim(),
-      menuItems: processedMenuItems,
+      menuItems: body.menuItems, // ✔ Use data as-is
+
       vehicleOwnerName: body.vehicleOwnerName?.trim() || undefined,
       phoneNumber: body.phoneNumber?.trim() || undefined,
       vehicleNumberPlaceholder: body.vehicleNumberPlaceholder?.trim() || undefined,
@@ -220,24 +146,16 @@ export async function POST(request: NextRequest) {
 
     const order = await OrderModel.create(orderData)
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: order,
-      },
-      { status: 201 },
-    )
+    return NextResponse.json({ success: true, data: order }, { status: 201 })
   } catch (error) {
     console.error("Error creating order:", error)
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to create order",
-      },
+      { success: false, error: "Failed to create order" },
       { status: 500 },
     )
   }
 }
+
 
 function getQuantityForTypeNew(
   quantities:

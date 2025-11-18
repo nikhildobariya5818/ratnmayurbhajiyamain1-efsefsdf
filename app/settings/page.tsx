@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLanguage } from "@/lib/language-context"
 import type { Language } from "@/lib/i18n"
-import { Globe, Settings } from "lucide-react"
+import { Globe, Settings } from 'lucide-react'
 
 export default function SettingsPage() {
   const { language, setLanguage, t } = useLanguage()
@@ -15,31 +15,31 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Settings className="h-8 w-8 text-gray-600" />
-          <h1 className="text-3xl font-bold text-balance">{t.settings}</h1>
+    <div className="container mx-auto px-4 py-6 md:px-6">
+      <div className="mb-6 md:mb-8">
+        <div className="flex items-center gap-2 md:gap-3 mb-2">
+          <Settings className="h-6 w-6 md:h-8 md:w-8 text-gray-600" />
+          <h1 className="text-2xl md:text-3xl font-bold text-balance">{t.settings}</h1>
         </div>
-        <p className="text-muted-foreground">{t.systemSettings}</p>
+        <p className="text-xs md:text-sm text-muted-foreground">{t.systemSettings}</p>
       </div>
 
-      <div className="grid gap-6 max-w-2xl">
+      <div className="grid gap-4 md:gap-6 max-w-2xl">
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-blue-600" />
-              <div>
-                <CardTitle>{t.language}</CardTitle>
-                <CardDescription>{t.selectLanguage}</CardDescription>
+          <CardHeader className="pb-3 md:pb-4">
+            <div className="flex items-start gap-2 md:gap-3">
+              <Globe className="h-4 w-4 md:h-5 md:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base md:text-lg">{t.language}</CardTitle>
+                <CardDescription className="text-xs md:text-sm">{t.selectLanguage}</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="language-select">{t.language}</Label>
+          <CardContent className="pt-0">
+            <div className="space-y-2 md:space-y-3">
+              <Label htmlFor="language-select" className="text-xs md:text-sm">{t.language}</Label>
               <Select value={language} onValueChange={handleLanguageChange}>
-                <SelectTrigger id="language-select" className="w-full">
+                <SelectTrigger id="language-select" className="w-full text-xs md:text-sm">
                   <SelectValue placeholder={t.selectLanguage} />
                 </SelectTrigger>
                 <SelectContent>
@@ -67,25 +67,24 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Additional settings can be added here */}
         <Card>
-          <CardHeader>
-            <CardTitle>System Information</CardTitle>
-            <CardDescription>Application details and version information</CardDescription>
+          <CardHeader className="pb-3 md:pb-4">
+            <CardTitle className="text-base md:text-lg">System Information</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Application details and version information</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
+            <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Version:</span>
-                <span>1.0.0</span>
+                <span className="font-medium">1.0.0</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Build:</span>
-                <span>Production</span>
+                <span className="font-medium">Production</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Last Updated:</span>
-                <span>{new Date().toLocaleDateString()}</span>
+                <span className="font-medium">{new Date().toLocaleDateString()}</span>
               </div>
             </div>
           </CardContent>

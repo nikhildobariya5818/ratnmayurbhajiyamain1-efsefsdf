@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Edit, Trash2, ChefHat, Package, FileText, BarChart3, Loader2 } from "lucide-react"
+import { Plus, Search, Edit, Trash2, ChefHat, Package, FileText, BarChart3, Loader2 } from 'lucide-react'
 import { MenuItemDialog } from "@/components/menu-items/menu-item-dialog"
 import { DeleteMenuItemDialog } from "@/components/menu-items/delete-menu-item-dialog"
 import { ViewMenuItemDialog } from "@/components/menu-items/view-menu-item-dialog"
@@ -141,11 +141,11 @@ export default function MenuItemsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto px-4 py-6 md:px-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p>{t.loading} menu items...</p>
+            <p className="text-sm md:text-base">{t.loading} menu items...</p>
           </div>
         </div>
       </div>
@@ -153,14 +153,14 @@ export default function MenuItemsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col gap-6">
+    <div className="container mx-auto px-4 py-6 md:px-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         {error && (
           <Card className="border-destructive">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-destructive">{error}</p>
-                <Button variant="outline" size="sm" onClick={loadData}>
+            <CardContent className="p-3 md:p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <p className="text-xs md:text-sm text-destructive">{error}</p>
+                <Button variant="outline" size="sm" onClick={loadData} className="text-xs md:text-sm w-full sm:w-auto">
                   {t.retry}
                 </Button>
               </div>
@@ -168,48 +168,48 @@ export default function MenuItemsPage() {
           </Card>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-balance">{t.menuItemManagement}</h1>
-            <p className="text-muted-foreground">{t.manageBhajiyaVarieties}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-balance">{t.menuItemManagement}</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">{t.manageBhajiyaVarieties}</p>
           </div>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+          <Button onClick={openCreateDialog} className="flex items-center gap-2 w-full sm:w-auto text-xs md:text-sm">
             <Plus className="h-4 w-4" />
             {t.addMenuItem}
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder={t.searchMenuItems}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-xs md:text-sm"
             />
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <div className="flex gap-2">
+            <Button
+              variant={selectedCategory === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory("all")}
+              className="text-xs md:text-sm"
+            >
+              All Categories
+            </Button>
+            {categories.map((category) => (
               <Button
-                variant={selectedCategory === "all" ? "default" : "outline"}
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory("all")}
+                onClick={() => setSelectedCategory(category)}
+                className="text-xs md:text-sm"
               >
-                All Categories
+                {category} ({categoryCounts[category]})
               </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category} ({categoryCounts[category]})
-                </Button>
-              ))}
-            </div>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -217,6 +217,7 @@ export default function MenuItemsPage() {
               variant={selectedType === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedType("all")}
+              className="text-xs md:text-sm"
             >
               All Types
             </Button>
@@ -226,6 +227,7 @@ export default function MenuItemsPage() {
                 variant={selectedType === type ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedType(type)}
+                className="text-xs md:text-sm"
               >
                 {t[typeLabels[type as keyof typeof typeLabels] as keyof typeof t]} ({count})
               </Button>
@@ -233,100 +235,100 @@ export default function MenuItemsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <ChefHat className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.totalMenuItems}</p>
-                  <p className="text-2xl font-bold">{menuItems.length}</p>
+                <ChefHat className="h-4 w-4 md:h-5 md:w-5 text-blue-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.totalMenuItems}</p>
+                  <p className="text-lg md:text-2xl font-bold">{menuItems.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Categories</p>
-                  <p className="text-2xl font-bold">{categories.length}</p>
+                <Package className="h-4 w-4 md:h-5 md:w-5 text-green-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Categories</p>
+                  <p className="text-lg md:text-2xl font-bold">{categories.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">With Charts</p>
-                  <p className="text-2xl font-bold">{menuItems.filter((item) => item.type.includes("chart")).length}</p>
+                <FileText className="h-4 w-4 md:h-5 md:w-5 text-purple-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">With Charts</p>
+                  <p className="text-lg md:text-2xl font-bold">{menuItems.filter((item) => item.type.includes("chart")).length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.searchResults}</p>
-                  <p className="text-2xl font-bold">{filteredMenuItems.length}</p>
+                <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-orange-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.searchResults}</p>
+                  <p className="text-lg md:text-2xl font-bold">{filteredMenuItems.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {filteredMenuItems.map((item) => (
             <Card key={item._id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">{item.name}</CardTitle>
-                    <CardDescription className="mt-1">{item.category}</CardDescription>
+              <CardHeader className="pb-2 md:pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base md:text-lg line-clamp-2">{item.name}</CardTitle>
+                    <CardDescription className="text-xs md:text-sm mt-1">{item.category}</CardDescription>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <Badge className={typeColors[item.type as keyof typeof typeColors]} variant="secondary">
+                      <Badge className={typeColors[item.type as keyof typeof typeColors]} variant="secondary" className="text-xs">
                         {t[typeLabels[item.type as keyof typeof typeLabels] as keyof typeof t]}
                       </Badge>
-                      <Badge variant="outline">{item.ingredients.length} ingredients</Badge>
+                      <Badge variant="outline" className="text-xs">{item.ingredients.length} ing</Badge>
                       {item.ingredients.some((ing) => ing.isDefaultIngredient) && (
-                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                          Has Defaults
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                          Defaults
                         </Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-0.5 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setViewingMenuItem(item)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0"
                       title="View Details"
                     >
-                      <FileText className="h-4 w-4" />
+                      <FileText className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => openEditDialog(item)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0"
                       title="Edit"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeletingMenuItem(item)}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0 text-destructive hover:text-destructive"
                       title="Delete"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -334,7 +336,7 @@ export default function MenuItemsPage() {
               <CardContent className="pt-0">
                 <div className="space-y-2">
                   <div>
-                    <p className="text-sm font-medium mb-1">Key Ingredients:</p>
+                    <p className="text-xs md:text-sm font-medium mb-1">Key Ingredients:</p>
                     <div className="flex flex-wrap gap-1">
                       {item.ingredients.slice(0, 3).map((ing) => (
                         <Badge key={ing.ingredientId} variant="outline" className="text-xs">
@@ -344,7 +346,7 @@ export default function MenuItemsPage() {
                       ))}
                       {item.ingredients.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{item.ingredients.length - 3} more
+                          +{item.ingredients.length - 3}
                         </Badge>
                       )}
                     </div>
@@ -360,16 +362,16 @@ export default function MenuItemsPage() {
 
         {filteredMenuItems.length === 0 && !loading && (
           <Card>
-            <CardContent className="p-8 text-center">
-              <ChefHat className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t.noMenuItemsFound}</h3>
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="p-6 md:p-8 text-center">
+              <ChefHat className="h-10 md:h-12 w-10 md:w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-base md:text-lg font-semibold mb-2">{t.noMenuItemsFound}</h3>
+              <p className="text-xs md:text-sm text-muted-foreground mb-4">
                 {searchTerm || selectedCategory !== "all" || selectedType !== "all"
                   ? t.tryAdjustingSearch
                   : t.getStartedAddMenuItem}
               </p>
               {!searchTerm && selectedCategory === "all" && selectedType === "all" && (
-                <Button onClick={openCreateDialog}>
+                <Button onClick={openCreateDialog} className="w-full sm:w-auto text-xs md:text-sm">
                   <Plus className="h-4 w-4 mr-2" />
                   {t.addMenuItem}
                 </Button>

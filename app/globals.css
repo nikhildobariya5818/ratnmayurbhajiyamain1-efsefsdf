@@ -122,4 +122,63 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Performance optimizations: reduce motion, improve rendering */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Enable GPU acceleration for smooth animations */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Optimize interactive elements for better performance */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Prevent layout shift from scrollbars */
+  html {
+    overflow-y: scroll;
+  }
+}
+
+/* Performance: optimize image loading and rendering */
+@layer utilities {
+  .will-change-transform {
+    will-change: transform;
+  }
+  
+  .gpu-accelerate {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Smooth transitions for better UX */
+  .transition-fast {
+    transition-duration: 150ms;
+  }
+  
+  .transition-smooth {
+    transition-duration: 300ms;
+  }
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Edit, Trash2, Package, Scale, Beaker, Loader2 } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Package, Scale, Beaker, Loader2 } from 'lucide-react'
 import { IngredientDialog } from "@/components/ingredients/ingredient-dialog"
 import { DeleteIngredientDialog } from "@/components/ingredients/delete-ingredient-dialog"
 import type { Ingredient } from "@/lib/types"
@@ -121,11 +121,11 @@ export default function IngredientsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto px-4 py-6 md:px-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p>Loading ingredients...</p>
+            <p className="text-sm md:text-base">Loading ingredients...</p>
           </div>
         </div>
       </div>
@@ -133,14 +133,14 @@ export default function IngredientsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex flex-col gap-6">
+    <div className="container mx-auto px-4 py-6 md:px-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         {error && (
           <Card className="border-destructive">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-destructive">{error}</p>
-                <Button variant="outline" size="sm" onClick={loadIngredients}>
+            <CardContent className="p-3 md:p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <p className="text-xs md:text-sm text-destructive">{error}</p>
+                <Button variant="outline" size="sm" onClick={loadIngredients} className="text-xs md:text-sm w-full sm:w-auto">
                   Retry
                 </Button>
               </div>
@@ -148,25 +148,25 @@ export default function IngredientsPage() {
           </Card>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-balance">{t.ingredientManagement}</h1>
-            <p className="text-muted-foreground">{t.manageIngredients}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-balance">{t.ingredientManagement}</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">{t.manageIngredients}</p>
           </div>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
+          <Button onClick={openCreateDialog} className="flex items-center gap-2 w-full sm:w-auto text-xs md:text-sm">
             <Plus className="h-4 w-4" />
             {t.addIngredient}
           </Button>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-3">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder={t.searchIngredients}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-xs md:text-sm"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -174,6 +174,7 @@ export default function IngredientsPage() {
               variant={selectedUnit === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedUnit("all")}
+              className="text-xs md:text-sm"
             >
               {t.allUnits}
             </Button>
@@ -185,103 +186,104 @@ export default function IngredientsPage() {
                   variant={selectedUnit === unit ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedUnit(unit)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs md:text-sm"
                 >
                   <Icon className="h-3 w-3" />
-                  {unit} ({count})
+                  <span className="hidden xs:inline">{unit}</span>
+                  <span className="inline xs:hidden">{unit.substring(0, 1)}</span> ({count})
                 </Button>
               )
             })}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.totalIngredients}</p>
-                  <p className="text-2xl font-bold">{ingredients.length}</p>
+                <Package className="h-4 w-4 md:h-5 md:w-5 text-blue-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.totalIngredients}</p>
+                  <p className="text-lg md:text-2xl font-bold">{ingredients.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Scale className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.weightUnits}</p>
-                  <p className="text-2xl font-bold">{(unitCounts.gram || 0) + (unitCounts.kg || 0)}</p>
+                <Scale className="h-4 w-4 md:h-5 md:w-5 text-green-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.weightUnits}</p>
+                  <p className="text-lg md:text-2xl font-bold">{(unitCounts.gram || 0) + (unitCounts.kg || 0)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Beaker className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.volumeUnits}</p>
-                  <p className="text-2xl font-bold">{(unitCounts.ml || 0) + (unitCounts.L || 0)}</p>
+                <Beaker className="h-4 w-4 md:h-5 md:w-5 text-purple-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.volumeUnits}</p>
+                  <p className="text-lg md:text-2xl font-bold">{(unitCounts.ml || 0) + (unitCounts.L || 0)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 md:p-4">
               <div className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t.searchResults}</p>
-                  <p className="text-2xl font-bold">{filteredIngredients.length}</p>
+                <Search className="h-4 w-4 md:h-5 md:w-5 text-orange-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">{t.searchResults}</p>
+                  <p className="text-lg md:text-2xl font-bold">{filteredIngredients.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
           {filteredIngredients.map((ingredient) => {
             const Icon = unitIcons[ingredient.unit]
             return (
               <Card key={ingredient._id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg line-clamp-2">{ingredient.name}</CardTitle>
+                <CardHeader className="pb-2 md:pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base md:text-lg line-clamp-2">{ingredient.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                        <Badge className={unitColors[ingredient.unit]} variant="secondary">
+                        <Icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+                        <Badge className={unitColors[ingredient.unit]} variant="secondary" className="text-xs">
                           {ingredient.unit}
                         </Badge>
                         {ingredient.isDefault && (
                           <Badge
-                            className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                            className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs"
                             variant="secondary"
                           >
-                            Default: {ingredient.defaultValue} {ingredient.unit}
+                            {ingredient.defaultValue} {ingredient.unit}
                           </Badge>
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => openEditDialog(ingredient)}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setDeletingIngredient(ingredient)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        className="h-7 w-7 md:h-8 md:w-8 p-0 text-destructive hover:text-destructive"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                     </div>
                   </div>
@@ -298,14 +300,14 @@ export default function IngredientsPage() {
 
         {filteredIngredients.length === 0 && !loading && (
           <Card>
-            <CardContent className="p-8 text-center">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t.noIngredientsFound}</h3>
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="p-6 md:p-8 text-center">
+              <Package className="h-10 md:h-12 w-10 md:w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-base md:text-lg font-semibold mb-2">{t.noIngredientsFound}</h3>
+              <p className="text-xs md:text-sm text-muted-foreground mb-4">
                 {searchTerm || selectedUnit !== "all" ? t.tryAdjustingSearch : t.getStartedAddIngredient}
               </p>
               {!searchTerm && selectedUnit === "all" && (
-                <Button onClick={openCreateDialog}>
+                <Button onClick={openCreateDialog} className="w-full sm:w-auto text-xs md:text-sm">
                   <Plus className="h-4 w-4 mr-2" />
                   {t.addIngredient}
                 </Button>
