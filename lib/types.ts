@@ -100,6 +100,7 @@ export interface OrderSummary {
     ingredientName: string
     unit: string
     totalQuantity: number
+    formattedValue: string // Added formattedValue to store quantity with unit type (e.g., "12 kg", "500 ml")
     isDefault: boolean
   }[]
 }
