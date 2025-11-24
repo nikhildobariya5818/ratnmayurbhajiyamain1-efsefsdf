@@ -135,6 +135,7 @@ export function scaleIngredientsWithMenuItems(
   totalQuantity: number
   isDefault: boolean
   menuItemCount: number
+  formattedValue: string
 }> {
   const scaledIngredients = new Map<
     string,
@@ -145,6 +146,7 @@ export function scaleIngredientsWithMenuItems(
       totalQuantity: number
       isDefault: boolean
       menuItemCount: number
+      formattedValue: string
     }
   >()
 
@@ -171,6 +173,7 @@ export function scaleIngredientsWithMenuItems(
           totalQuantity: 0,
           isDefault: ingredient.isDefaultIngredient,
           menuItemCount: 1,
+          formattedValue: "",
         })
       }
     })
@@ -182,18 +185,14 @@ export function scaleIngredientsWithMenuItems(
     }
 
     menuItem.ingredients.forEach((ingredient) => {
-      console.log("ingredient",ingredient);
-      
       if (!ingredient || !ingredient.ingredientId) {
         return
       }
 
       const ingredientData = scaledIngredients.get(ingredient.ingredientId)!
       let quantityPer100 = 0
-      
+
       if (ingredient.isDefaultIngredient) {
-        
-        console.log("if case");
         const menuItemCount = ingredientData.menuItemCount
         const baseQuantity = ingredient.ingredient?.defaultValue ?? 12
         const threshold = ingredient.ingredient?.incrementThreshold ?? 3
@@ -201,18 +200,11 @@ export function scaleIngredientsWithMenuItems(
 
         if (menuItemCount <= threshold) {
           quantityPer100 = baseQuantity
-          console.log("log2 ",quantityPer100);
         } else {
           quantityPer100 = baseQuantity + (menuItemCount - threshold) * increment
-          console.log("log3 ",quantityPer100);
         }
       } else {
-        console.log("else case");
-        console.log("ingredient.quantities",ingredient.quantities);
-        
         const quantities = ingredient.quantities || {
-          
-
           onlyBhajiyaKG: 0,
           dishWithOnlyBhajiya: 0,
           dishHaveNoChart: 0,
@@ -222,23 +214,18 @@ export function scaleIngredientsWithMenuItems(
         switch (menuItem.selectedType) {
           case "only_bhajiya_kg":
             quantityPer100 = quantities.onlyBhajiyaKG
-            console.log("only_bhajiya_kg ",quantityPer100);
             break
           case "dish_with_only_bhajiya":
             quantityPer100 = quantities.dishWithOnlyBhajiya
-            console.log("dish_with_only_bhajiya ",quantityPer100);
             break
           case "dish_have_no_chart":
             quantityPer100 = quantities.dishHaveNoChart
-            console.log("dish_have_no_chart ",quantityPer100);
             break
           case "dish_have_chart_bhajiya":
             quantityPer100 = quantities.dishHaveChartAndBhajiya
-            console.log("dish_have_chart_bhajiya ",quantityPer100);
             break
           default:
             quantityPer100 = 0
-            console.log("default ",quantityPer100);
         }
       }
 
@@ -254,12 +241,20 @@ export function scaleIngredientsWithMenuItems(
     })
   })
 
-  const result = Array.from(scaledIngredients.values()).sort((a, b) => {
-    if (a.isDefault !== b.isDefault) {
-      return a.isDefault ? -1 : 1
-    }
-    return a.ingredientName.localeCompare(b.ingredientName)
-  })
+  const result = Array.from(scaledIngredients.values())
+    .map((item) => {
+      const { formatQuantityByUnit } = require("@/lib/format-quantity")
+      return {
+        ...item,
+        formattedValue: formatQuantityByUnit(item.totalQuantity, item.unit),
+      }
+    })
+    .sort((a, b) => {
+      if (a.isDefault !== b.isDefault) {
+        return a.isDefault ? -1 : 1
+      }
+      return a.ingredientName.localeCompare(b.ingredientName)
+    })
 
   return result
 }
@@ -362,10 +357,7 @@ export function scaleIngredientsWithDualValues(
           : getQuantityForType(ingredient.multiItems, menuItem.selectedType)
       } else if (ingredient.quantityPer100 !== undefined) {
         quantityPer100 = ingredient.quantityPer100
-        console.log("log1 ",quantityPer100);
-        
       }
-      
 
       const scaledQuantity = quantityPer100 * scalingFactor
 
