@@ -26,7 +26,7 @@ import { scaleIngredientsWithMenuItems } from "@/lib/database"
 import { createClient } from "@/lib/api/clients"
 import { FileText } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
-import { formatQuantityI18n } from "@/lib/format-quantity"
+import { formatQuantityByUnitI18n } from "@/lib/format-quantity"
 
 const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredients, onSubmit }: OrderDialogProps) => {
   const { t } = useLanguage()
@@ -239,6 +239,7 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
               dishHaveNoChart: 0,
               dishHaveChartAndBhajiya: 0,
             },
+            formattedValue: formatQuantityByUnitI18n(quantityPer100 * formData.numberOfPeople, ingredient.unit, t),
           }
         }),
       }
@@ -356,6 +357,13 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
                     dishHaveNoChart: 0,
                     dishHaveChartAndBhajiya: 0,
                   },
+                  formattedValue: formatQuantityByUnitI18n(
+                    ing.isDefaultIngredient
+                      ? (ing.quantities?.onlyBhajiyaKG || 12) * formData.numberOfPeople
+                      : getQuantityForTypeNew(ing.quantities, formData.orderType) * formData.numberOfPeople,
+                    ingredient?.unit || "kg",
+                    t,
+                  ),
                 }
               }),
             }
@@ -615,9 +623,7 @@ const OrderDialog = ({ open, onOpenChange, order, clients, menuItems, ingredient
                               </span>
                             )}
                           </span>
-                          <span className="text-sm font-semibold">
-                            {formatQuantityI18n(ingredient.totalQuantity, t)}
-                          </span>
+                          <span className="text-sm font-semibold">{ingredient.formattedValue}</span>
                         </div>
                       ))}
                     </div>
