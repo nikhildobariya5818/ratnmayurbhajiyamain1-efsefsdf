@@ -19,7 +19,7 @@ import { useState } from "react"
 import { OrderPDF } from "./pdf/OrderPDF"
 import { generatePDFFilename } from "@/lib/pdf-utils"
 import { useLanguage } from "@/lib/language-context"
-import { formatQuantityI18n } from "@/lib/format-quantity"
+import { formatQuantityByUnitI18n } from "@/lib/format-quantity"
 
 interface ViewOrderDialogProps {
   open: boolean
@@ -179,7 +179,9 @@ export function ViewOrderDialog({ open, onOpenChange, order }: ViewOrderDialogPr
                       className="flex justify-between items-center py-3 border-b border-muted last:border-b-0"
                     >
                       <span className="text-sm font-medium">{ingredient.ingredientName}</span>
-                      <span className="text-sm font-semibold">{formatQuantityI18n(ingredient.totalQuantity, t)}</span>
+                      <span className="text-sm font-semibold">
+                        {formatQuantityByUnitI18n(ingredient.totalQuantity, ingredient.unit, t)}
+                      </span>
                     </div>
                   ))
                 ) : (
